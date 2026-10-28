@@ -4,6 +4,13 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.4 - 2026-10-28
+
+- `Tembo::withHeaders()`, `withQuery()`, `withTimeout()` and `withRetries()`
+  return a copy of the client with that option changed, matching the official
+  SDK's client and request options. New `headers` and `query` config keys add
+  defaults for every request.
+
 ## 1.0.3 - 2026-10-28
 
 - `users()->profilePicture()->update()` uploads a profile picture from an

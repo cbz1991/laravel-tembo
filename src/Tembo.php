@@ -58,6 +58,43 @@ class Tembo
     }
 
     /**
+     * A copy of the client that sends these headers with every request.
+     *
+     * @param  array<string, string>  $headers
+     */
+    public function withHeaders(array $headers): static
+    {
+        return $this->withConfig(['headers' => array_replace((array) $this->config('headers', []), $headers)]);
+    }
+
+    /**
+     * A copy of the client that adds these query parameters to every request.
+     * Parameters passed to a method take precedence.
+     *
+     * @param  array<string, mixed>  $query
+     */
+    public function withQuery(array $query): static
+    {
+        return $this->withConfig(['query' => array_replace((array) $this->config('query', []), $query)]);
+    }
+
+    /**
+     * A copy of the client with another request timeout, in seconds.
+     */
+    public function withTimeout(int $seconds): static
+    {
+        return $this->withConfig(['timeout' => $seconds]);
+    }
+
+    /**
+     * A copy of the client with another number of retries (0 disables them).
+     */
+    public function withRetries(int $retries): static
+    {
+        return $this->withConfig(['retries' => $retries]);
+    }
+
+    /**
      * A copy of the client with some config values replaced.
      *
      * @param  array<string, mixed>  $config
@@ -329,6 +366,12 @@ class Tembo
      */
     protected function dispatch(PendingRequest $request, string $method, string $path, array $options): Response
     {
+        $defaults = (array) $this->config('query', []);
+
+        if ($defaults !== []) {
+            $options['query'] = array_replace(static::normalizeQuery($defaults), $options['query'] ?? []);
+        }
+
         try {
             $response = $request->send($method, $path, $options);
         } catch (HttpConnectionException $e) {
@@ -357,9 +400,10 @@ class Tembo
 
         $request = $this->http
             ->baseUrl(rtrim((string) $this->config('base_url', 'https://api.tembo.io'), '/'))
-            ->withToken($apiKey)
             ->acceptJson()
             ->withUserAgent('cabuz/laravel-tembo/'.static::version())
+            ->withHeaders((array) $this->config('headers', []))
+            ->withToken($apiKey)
             ->timeout((int) $this->config('timeout', 30));
 
         if ($json) {

@@ -281,6 +281,22 @@ Tembo::withApiKey($tenant->tembo_key)->sessions()->start('...');
 Watched sessions keep using that key. The key travels inside the queued job,
 so the job payload is encrypted with your `APP_KEY`.
 
+### Per-client options
+
+Like the official SDK's client and request options, these return a copy with
+one setting changed:
+
+```php
+Tembo::withTimeout(120)->sessions()->list();       // seconds
+Tembo::withRetries(0)->agents()->run($agentId);    // no retries
+Tembo::withHeaders(['X-Request-Id' => $requestId])->sessions()->retrieve($id);
+Tembo::withQuery(['limit' => 100])->repositories()->list();
+```
+
+They can be chained, and `withConfig()` replaces any config value. The
+`Authorization` header always comes from the API key. Default headers and query
+parameters for every request go in the `headers` and `query` config keys.
+
 ## Errors
 
 Every error extends `Cabuz\Tembo\Exceptions\TemboException`:
@@ -378,6 +394,8 @@ frames you want.
 | `watch.timeout` | `TEMBO_WATCH_TIMEOUT` | `3600` seconds |
 | `watch.connection` | `TEMBO_QUEUE_CONNECTION` | default connection |
 | `watch.queue` | `TEMBO_QUEUE` | default queue |
+| `headers` | none | `[]` |
+| `query` | none | `[]` |
 
 ## Changelog
 

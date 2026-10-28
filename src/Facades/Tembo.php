@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * @method static TemboClient withApiKey(string $apiKey)
+ * @method static TemboClient withHeaders(array<string, string> $headers)
+ * @method static TemboClient withQuery(array<string, mixed> $query)
+ * @method static TemboClient withTimeout(int $seconds)
+ * @method static TemboClient withRetries(int $retries)
  * @method static TemboClient withConfig(array<string, mixed> $config)
  * @method static mixed config(string $key, mixed $default = null)
  * @method static \Cabuz\Tembo\Resources\Sessions sessions()

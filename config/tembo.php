@@ -49,6 +49,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default headers and query parameters
+    |--------------------------------------------------------------------------
+    |
+    | Sent with every request. Tembo::withHeaders() and Tembo::withQuery()
+    | add to them at runtime; parameters passed to a method take precedence.
+    |
+    */
+
+    'headers' => [],
+
+    'query' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Watching sessions
     |--------------------------------------------------------------------------
     |

@@ -260,4 +260,26 @@ class ClientTest extends TestCase
 
         unlink($path);
     }
+
+    public function test_per_client_headers_query_timeout_and_retries(): void
+    {
+        Http::fake(['*' => Http::response(['error' => 'down'], 503)]);
+
+        $tembo = Tembo::withHeaders(['X-Trace' => 'abc', 'Authorization' => 'Bearer wrong'])
+            ->withQuery(['limit' => 5, 'state' => 'active'])
+            ->withTimeout(5)
+            ->withRetries(0);
+
+        try {
+            $tembo->sessions()->list(['state' => ['queued', 'inProgress']]);
+        } catch (ServerException) {
+        }
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn (Request $request) => $request->hasHeader('X-Trace', 'abc')
+            && $request->hasHeader('Authorization', 'Bearer test-key')
+            && $request->url() === 'https://api.tembo.io/v1/sessions?limit=5&state=queued%2CinProgress');
+        $this->assertSame(5, $tembo->config('timeout'));
+        $this->assertNull(Tembo::config('headers')['X-Trace'] ?? null);
+    }
 }
