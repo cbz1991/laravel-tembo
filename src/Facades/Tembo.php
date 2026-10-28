@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Http;
  * @method static \Cabuz\Tembo\Resources\Billing billing()
  * @method static \Cabuz\Tembo\Resources\Insights insights()
  * @method static \Cabuz\Tembo\Resources\Pins pins()
+ * @method static \Cabuz\Tembo\Resources\Live live()
  * @method static array<string, mixed> me()
  * @method static array<string, mixed> authContext()
  * @method static array<string, mixed> get(string $path, array<string, mixed> $query = [])

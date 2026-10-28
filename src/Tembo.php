@@ -11,6 +11,7 @@ use Cabuz\Tembo\Resources\Artifacts;
 use Cabuz\Tembo\Resources\Billing;
 use Cabuz\Tembo\Resources\Insights;
 use Cabuz\Tembo\Resources\Integrations;
+use Cabuz\Tembo\Resources\Live;
 use Cabuz\Tembo\Resources\McpConnections;
 use Cabuz\Tembo\Resources\Messages;
 use Cabuz\Tembo\Resources\Models;
@@ -166,6 +167,11 @@ class Tembo
     public function pins(): Pins
     {
         return new Pins($this);
+    }
+
+    public function live(): Live
+    {
+        return new Live($this);
     }
 
     /**

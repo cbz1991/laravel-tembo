@@ -2,6 +2,9 @@
 
 namespace Cabuz\Tembo\Tests;
 
+use Cabuz\Tembo\Live\SocketFactory;
+use Cabuz\Tembo\Tests\Fakes\FakeSocket;
+use Cabuz\Tembo\Tests\Fakes\FakeSocketFactory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
@@ -73,5 +76,25 @@ class CommandsTest extends TestCase
         $this->artisan('tembo:run', ['task' => 'Fix it', '--wait' => true])
             ->expectsOutputToContain('failed')
             ->assertFailed();
+    }
+
+    public function test_run_can_follow_the_live_output(): void
+    {
+        Http::fake([
+            '*/v1/sessions' => Http::response($this->fakeSession('queued'), 201),
+            '*/v1/live' => Http::response(['ticket' => 't1']),
+            '*/v1/sessions/*' => Http::response($this->fakeSession('completed')),
+        ]);
+        $this->app->instance(SocketFactory::class, new FakeSocketFactory([new FakeSocket([
+            ['type' => 'ready'],
+            ['type' => 'ready', 'id' => 'events'],
+            ['type' => 'event', 'id' => 'events', 'data' => ['type' => 'delta', 'data' => ['event' => 'output', 'message' => 'Reading the tests']]],
+            null,
+        ])]));
+
+        $this->artisan('tembo:run', ['task' => 'Fix it', '--follow' => true])
+            ->expectsOutputToContain('Reading the tests')
+            ->expectsOutputToContain('completed')
+            ->assertSuccessful();
     }
 }

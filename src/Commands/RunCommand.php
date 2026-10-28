@@ -2,6 +2,7 @@
 
 namespace Cabuz\Tembo\Commands;
 
+use Cabuz\Tembo\Exceptions\SessionTimeoutException;
 use Cabuz\Tembo\Exceptions\TemboException;
 use Cabuz\Tembo\Support\SessionState;
 use Cabuz\Tembo\Tembo;
@@ -17,7 +18,8 @@ class RunCommand extends Command
         {--project= : Project ID}
         {--branch= : Base branch to start from}
         {--wait : Wait until the session finishes}
-        {--timeout=3600 : Seconds to wait with --wait}';
+        {--follow : Stream the agent output until the session finishes (needs phrity/websocket)}
+        {--timeout=3600 : Seconds to wait with --wait or --follow}';
 
     protected $description = 'Start a Tembo coding agent session';
 
@@ -44,15 +46,17 @@ class RunCommand extends Command
                 $this->line('  '.$session['htmlUrl']);
             }
 
-            if (! $this->option('wait') || $id === '') {
+            if ($this->option('follow') && $id !== '') {
+                $session = $this->follow($tembo, $id);
+            } elseif (! $this->option('wait') || $id === '') {
                 return self::SUCCESS;
+            } else {
+                $this->components->task('Waiting for the agent', function () use ($tembo, $id, &$session) {
+                    $session = $tembo->sessions()->wait($id, (int) $this->option('timeout'));
+
+                    return SessionState::of($session) === SessionState::COMPLETED;
+                });
             }
-
-            $this->components->task('Waiting for the agent', function () use ($tembo, $id, &$session) {
-                $session = $tembo->sessions()->wait($id, (int) $this->option('timeout'));
-
-                return SessionState::of($session) === SessionState::COMPLETED;
-            });
         } catch (TemboException $e) {
             $this->components->error($e->getMessage());
 
@@ -63,6 +67,40 @@ class RunCommand extends Command
         $this->components->twoColumnDetail('State', (string) $state);
 
         return $state === SessionState::COMPLETED ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Print the session's live output until it finishes, checking its state
+     * whenever the stream goes quiet.
+     *
+     * @return array<string, mixed>
+     */
+    protected function follow(Tembo $tembo, string $id): array
+    {
+        $deadline = time() + (int) $this->option('timeout');
+        $session = [];
+
+        foreach ($tembo->sessions()->events()->live()->subscribe($id) as $frame) {
+            if ($frame['type'] === 'delta' && is_array($frame['data'] ?? null)) {
+                $this->line((string) ($frame['data']['message'] ?? ''));
+
+                continue;
+            }
+
+            if ($frame['type'] === 'idle') {
+                $session = $tembo->sessions()->retrieve($id);
+
+                if (SessionState::isFinished($session)) {
+                    return $session;
+                }
+
+                if (time() >= $deadline) {
+                    throw SessionTimeoutException::make($id, (int) $this->option('timeout'), $session);
+                }
+            }
+        }
+
+        return $session;
     }
 
     /**

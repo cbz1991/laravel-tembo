@@ -23,15 +23,14 @@ class EndpointCoverageTest extends TestCase
      */
     private const NOT_WRAPPED = [
         'GET /oauth/context' => 'OAuth tokens only; API keys use authContext().',
-        'POST /v1/live' => 'WebSocket subscriptions are out of scope for an HTTP client.',
-        'GET /v1/live' => 'WebSocket subscriptions are out of scope for an HTTP client.',
+        'GET /v1/live' => 'The WebSocket upgrade; opened by live()->connect().',
         'PUT /v1/users/{userId}/profile-picture' => 'Binary upload; use Tembo::send() directly.',
     ];
 
     /**
-     * Methods that poll or dispatch jobs instead of making one request.
+     * Methods that poll, dispatch jobs or open WebSockets instead of making one request.
      */
-    private const SKIPPED_METHODS = ['wait', 'watch'];
+    private const SKIPPED_METHODS = ['wait', 'watch', 'connect', 'subscribe'];
 
     public function test_every_sdk_request_matches_a_documented_endpoint_and_every_endpoint_is_wrapped(): void
     {
@@ -98,7 +97,7 @@ class EndpointCoverageTest extends TestCase
             }
         }
 
-        $this->assertCount(18, $resources);
+        $this->assertCount(19, $resources);
 
         for ($i = 0; $i < count($resources); $i++) {
             foreach ((new ReflectionClass($resources[$i]))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {

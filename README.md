@@ -39,6 +39,8 @@ public function handle(SessionCompleted $event): void
   `Http::fake()` and `Tembo::fake()` work in your tests.
 - **Session events without webhooks**: a queued job watches a session and
   fires `SessionCompleted`, `SessionFailed` or `SessionCancelled`.
+- **Live output**: stream what the agent is doing over Tembo's WebSocket API,
+  with automatic reconnects.
 - **Safe retries**: rate limits are retried for every request, but server
   errors and dropped connections only for reads, so a retry never starts the
   same agent twice.
@@ -152,6 +154,44 @@ $session = Tembo::sessions()->wait($id, timeout: 900, interval: 15);
 
 It throws `SessionTimeoutException` when the timeout passes.
 
+### Stream the live output
+
+Follow what the agent is doing as it happens, over Tembo's WebSocket API.
+This needs a WebSocket client:
+
+```bash
+composer require phrity/websocket
+```
+
+```php
+foreach (Tembo::sessions()->events()->live()->subscribe($sessionId) as $frame) {
+    // "ready" once subscribed, "delta" for each output event,
+    // "idle" after 15 seconds without output.
+    if ($frame['type'] === 'delta') {
+        logger()->info($frame['data']['message']);
+    }
+
+    // Break whenever you're done; the connection is closed for you.
+}
+```
+
+`delta` frames carry `event`, `message` (the agent provider's event payload as
+a string) and, when known, `provider`, `messageId` and `createdAt`. `idle`
+frames are specific to this package: PHP can't run a timer during a blocking
+read, so the loop gets a turn to check other things, such as
+`Tembo::sessions()->state($id)`, while the agent is quiet.
+
+Dropped connections are retried with a new ticket (up to 5 times, with
+backoff); a rejected subscription throws `LiveSubscriptionException`. It's a
+live stream, not a replay: use `Tembo::sessions()->listEvents($id)` for
+anything missed during a reconnect. Options: `maxRetries`, `initialDelay` and
+`maxDelay` (milliseconds) and `timeout` (seconds).
+
+For several subscriptions on one connection, use the raw API:
+`Tembo::live()->authorize()` returns a ticket, `Tembo::live()->connect($ticket)`
+opens the connection, and `send()` / `receive()` exchange
+[the protocol's](https://github.com/tembo/sdk#websockets) frames.
+
 ### Automation agents
 
 ```php
@@ -254,7 +294,9 @@ Every error extends `Cabuz\Tembo\Exceptions\TemboException`:
 | `RateLimitException` | 429, after retries (`retryAfter()` gives the seconds) |
 | `ServerException` | 5xx |
 | `ConnectionException` | Tembo could not be reached |
+| `LiveSubscriptionException` | A live subscription was rejected (`getCode()` gives the status) |
 | `MissingApiKeyException` | No API key configured |
+| `MissingWebSocketClientException` | Live streaming without `phrity/websocket` installed |
 
 ```php
 try {
@@ -284,6 +326,9 @@ php artisan tembo:check
 
 # Start an agent; --repo takes an ID or owner/name and can be repeated
 php artisan tembo:run "Fix the flaky CheckoutTest" --repo=acme/shop --wait
+
+# Or print the agent's output while it works (needs phrity/websocket)
+php artisan tembo:run "Fix the flaky CheckoutTest" --repo=acme/shop --follow
 ```
 
 `tembo:run` also accepts `--agent`, `--project`, `--branch` and `--timeout`.
@@ -314,6 +359,10 @@ Patterns match the full URL, query string included, so use a trailing `*` for
 requests with filters (`'v1/repositories*'`). Values can also be
 `Http::response(...)` or `Http::sequence()` stubs. For the watcher, use
 `Queue::fake()` and `Event::fake()` as usual.
+
+To fake the live stream, bind your own `Cabuz\Tembo\Live\SocketFactory` in
+the container; it returns `Cabuz\Tembo\Live\Socket` objects that hand out the
+frames you want.
 
 ## Configuration
 

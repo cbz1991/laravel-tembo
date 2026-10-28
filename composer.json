@@ -28,7 +28,11 @@
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.13",
         "orchestra/testbench": "^8.0 || ^9.0 || ^10.0 || ^11.0",
-        "phpunit/phpunit": "^10.5 || ^11.0"
+        "phpunit/phpunit": "^10.5 || ^11.0",
+        "phrity/websocket": "^3.0 || ^4.0"
+    },
+    "suggest": {
+        "phrity/websocket": "Needed for live streaming of session output (Tembo::live(), sessions()->events()->live())."
     },
     "autoload": {
         "psr-4": {

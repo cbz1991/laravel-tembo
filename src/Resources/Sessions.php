@@ -6,6 +6,7 @@ use Cabuz\Tembo\Exceptions\SessionTimeoutException;
 use Cabuz\Tembo\Jobs\WatchSession;
 use Cabuz\Tembo\Resources\Sessions\Commands;
 use Cabuz\Tembo\Resources\Sessions\Diffs;
+use Cabuz\Tembo\Resources\Sessions\Events;
 use Cabuz\Tembo\Resources\Sessions\Inputs;
 use Cabuz\Tembo\Resources\Sessions\Queue;
 use Cabuz\Tembo\Resources\Sessions\Sources;
@@ -201,5 +202,10 @@ class Sessions extends Resource
     public function commands(): Commands
     {
         return new Commands($this->tembo);
+    }
+
+    public function events(): Events
+    {
+        return new Events($this->tembo);
     }
 }

@@ -4,6 +4,15 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.2 - 2026-10-28
+
+- Live streaming of a session's output over Tembo's WebSocket API, like the
+  official SDK: `Tembo::sessions()->events()->live()->subscribe($id)` yields
+  `ready`, `delta` and `idle` frames and reconnects with a fresh ticket.
+  `Tembo::live()` exposes `authorize()`, `connect()` and `subscribe()` for
+  manual multiplexing. Needs the optional `phrity/websocket` package.
+- `tembo:run --follow` prints the agent's output until the session finishes.
+
 ## 1.0.1 - 2026-10-28
 
 - **Breaking:** resources now have the same structure and method names as
