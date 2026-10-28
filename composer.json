@@ -1,7 +1,7 @@
 {
     "name": "cabuz/laravel-tembo",
     "description": "Laravel SDK for the Tembo API: start background coding agents, manage sessions, agents, projects and repositories, and react to finished sessions with Laravel events.",
-    "keywords": ["laravel", "tembo", "sdk", "api", "coding-agents", "ai", "claude-code", "codex", "automation"],
+    "keywords": ["laravel", "laravel-package", "php", "tembo", "sdk", "api-client", "coding-agents", "ai-agents", "background-agents", "claude-code", "codex", "automation", "websocket"],
     "license": "MIT",
     "homepage": "https://github.com/cbz1991/laravel-tembo",
     "authors": [
