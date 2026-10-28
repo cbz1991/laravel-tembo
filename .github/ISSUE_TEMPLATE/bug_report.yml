@@ -1,0 +1,65 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! If your API key leaks anywhere (logs,
+        exceptions, events), please report it privately through the Security
+        tab instead — see SECURITY.md. Never paste your API key in an issue.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: laravel-version
+    attributes:
+      label: Laravel version
+      placeholder: "e.g. 12.30.0"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "e.g. 8.3.12"
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Tembo endpoint
+      description: The API method and path involved, if any.
+      placeholder: "e.g. POST /v1/sessions"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest code that reproduces the problem.
+      render: php
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output
+      description: Stack traces, Tembo error messages or log lines, if any.
+      render: shell

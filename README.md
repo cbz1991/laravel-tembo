@@ -1,0 +1,337 @@
+# laravel-tembo
+
+[![tests](https://github.com/cbz1991/laravel-tembo/actions/workflows/tests.yml/badge.svg)](https://github.com/cbz1991/laravel-tembo/actions/workflows/tests.yml)
+[![Latest Version](https://img.shields.io/packagist/v/cabuz/laravel-tembo)](https://packagist.org/packages/cabuz/laravel-tembo)
+[![Total Downloads](https://img.shields.io/packagist/dt/cabuz/laravel-tembo)](https://packagist.org/packages/cabuz/laravel-tembo)
+[![License](https://img.shields.io/packagist/l/cabuz/laravel-tembo)](LICENSE)
+
+A Laravel SDK for the [Tembo](https://www.tembo.io) API.
+
+Tembo runs coding agents (Claude Code, Codex, Cursor, Amp, Opencode...) in the
+background on your repositories, and they usually finish with a pull request.
+This package lets your Laravel app start those agents and react when they
+finish:
+
+```php
+use Cabuz\Tembo\Facades\Tembo;
+
+$session = Tembo::sessions()->start('Fix the N+1 query on the orders page', [
+    'codeRepositoryIds' => [$repositoryId],
+]);
+
+Tembo::sessions()->watch($session['id'], ['ticket_id' => $ticket->id]);
+```
+
+```php
+// In a listener: the agent is done.
+public function handle(SessionCompleted $event): void
+{
+    Ticket::find($event->context['ticket_id'])
+        ->update(['pull_request' => $event->pullRequestUrls()[0] ?? null]);
+}
+```
+
+- **The whole public API**: sessions, messages, agents (runs, schedules,
+  triggers), projects, repositories, pull requests, integrations, MCP
+  connections, skills, organizations, users, billing and more. A test checks
+  every SDK method against Tembo's OpenAPI schema.
+- **Laravel-native**: config file, facade, Laravel's HTTP client, so
+  `Http::fake()` and `Tembo::fake()` work in your tests.
+- **Session events without webhooks**: a queued job watches a session and
+  fires `SessionCompleted`, `SessionFailed` or `SessionCancelled`.
+- **Safe retries**: rate limits are retried for every request, but server
+  errors and dropped connections only for reads, so a retry never starts the
+  same agent twice.
+- **Typed exceptions** for every error status, and **cursor pagination** that
+  can stream every page lazily.
+- **Artisan commands** to check your key and start an agent from the terminal.
+
+> This is a community package, not an official Tembo SDK. Tembo's own SDK is
+> TypeScript only.
+
+## Requirements
+
+- PHP 8.1+
+- Laravel 10.10+, 11, 12 or 13
+- A Tembo API key
+
+## Installation
+
+```bash
+composer require cabuz/laravel-tembo
+```
+
+Create an API key in the Tembo dashboard under **Settings > API Keys** and add
+it to `.env`:
+
+```dotenv
+TEMBO_API_KEY=your-key
+```
+
+Check that it works:
+
+```bash
+php artisan tembo:check
+```
+
+To change the defaults, publish the config file:
+
+```bash
+php artisan vendor:publish --tag=tembo-config
+```
+
+## Usage
+
+Use the `Tembo` facade, or inject `Cabuz\Tembo\Tembo`. Every method returns the
+decoded JSON as an array; list methods return a [`CursorPage`](#pagination).
+
+### Start a coding agent
+
+```php
+$session = Tembo::sessions()->start('Add rate limiting to the public API', [
+    'codeRepositoryIds' => ['123e4567-e89b-12d3-a456-426614174000'],
+    'agent' => 'claudeCode:claude-fable-5-1', // optional, see Tembo::models()->list()
+    'baseBranch' => 'develop',
+]);
+
+$session['id'];      // session UUID
+$session['htmlUrl']; // link to the session in Tembo
+```
+
+`start()` creates the session and queues the task right away. Use
+`create()` to pass the raw request body yourself.
+
+Look up repository IDs by name:
+
+```php
+$repository = Tembo::repositories()->findByName('acme/api');
+```
+
+### Follow up, steer or stop
+
+```php
+Tembo::sessions()->sendMessage($id, 'Also add a feature test');
+Tembo::sessions()->sendMessage($id, 'Use the existing RateLimiter', ['deliveryMode' => 'steer']);
+
+Tembo::sessions()->stop($id);
+Tembo::sessions()->fork($id, ['prompt' => 'Try a different approach']);
+```
+
+### Wait for the result
+
+Tembo has no webhooks yet. There are two ways to know when an agent is done.
+
+**In a queue (recommended).** `watch()` dispatches a job that polls the session
+every 30 seconds and fires an event when it ends. No worker is blocked while
+the agent runs.
+
+```php
+Tembo::sessions()->watch($session['id'], context: ['ticket_id' => 42]);
+```
+
+| Event | When |
+|---|---|
+| `Cabuz\Tembo\Events\SessionCompleted` | The agent finished. |
+| `Cabuz\Tembo\Events\SessionFailed` | The agent failed. |
+| `Cabuz\Tembo\Events\SessionCancelled` | The session was stopped. |
+| `Cabuz\Tembo\Events\SessionWatchTimedOut` | Still running after the watch timeout (1 hour by default). |
+
+Every event has `$sessionId`, `$session` (the latest API data), `$context`
+(what you passed to `watch()`), `state()` and `pullRequestUrls()`. All four
+implement `Cabuz\Tembo\Events\SessionFinished`, so one listener on that
+interface receives every outcome.
+
+**Synchronously.** `wait()` polls in the current process and returns the final
+session. Use it in commands and jobs, not in web requests.
+
+```php
+$session = Tembo::sessions()->wait($id, timeout: 900, interval: 15);
+
+\Cabuz\Tembo\Support\SessionState::of($session); // "completed", "failed" or "cancelled"
+```
+
+It throws `SessionTimeoutException` when the timeout passes.
+
+### Automation agents
+
+```php
+$agent = Tembo::agents()->create([
+    'name' => 'Dependency updater',
+    'instructions' => 'Update outdated Composer packages and open a PR.',
+    'repositoryIds' => [$repositoryId],
+]);
+
+Tembo::agents()->createSchedule($agent['id'], ['cron' => '0 6 * * 1']);
+
+// Run it now; the payload reaches the agent as custom input.
+$run = Tembo::agents()->run($agent['id'], ['reason' => 'Security advisory CVE-2026-1234']);
+```
+
+### Everything else
+
+Each resource follows the same naming: `list()`, `create()`, `get()`,
+`update()`, `delete()`, and `listX()` / `createX()` / `getX()` / `updateX()` /
+`deleteX()` for nested resources.
+
+| Accessor | Covers |
+|---|---|
+| `sessions()` | Sessions, inputs, queue, commands, events, diffs, sources |
+| `messages()` | Session messages |
+| `agents()` | Agents, templates, instruction revisions, schedules, triggers, runs |
+| `projects()` | Projects, environment variables, snapshots, builds, schedules |
+| `repositories()` | Repositories |
+| `pullRequests()` | Pull requests opened by sessions |
+| `artifacts()` | Session artifacts |
+| `integrations()` | Integrations, providers, triggers, sync, rate limits, Sentry and Slack lookups |
+| `mcpConnections()` | MCP connections |
+| `skills()` | Skills and the skills marketplace |
+| `models()`, `runtimes()` | Available agent models and runtimes |
+| `organizations()` | Organizations, members, secrets, settings, subscriptions |
+| `users()`, `apiKeys()` | Users, settings, connected accounts, API keys |
+| `billing()`, `insights()`, `pins()` | Billing and usage, insights, pins |
+
+For an endpoint Tembo adds before this package wraps it, use the raw methods:
+
+```php
+Tembo::get('v1/some-new-endpoint', ['limit' => 10]);
+Tembo::post('v1/some-new-endpoint', ['name' => 'x']);
+```
+
+### Pagination
+
+List methods return a `CursorPage`:
+
+```php
+$page = Tembo::sessions()->list(['state' => 'active', 'limit' => 50]);
+
+foreach ($page as $session) { /* items on this page */ }
+
+$page->hasMore();
+$next = $page->nextPage();
+
+// Every item across all pages, fetched on demand:
+Tembo::repositories()->list()->lazy()->each(fn ($repository) => ...);
+```
+
+List filters can be passed as PHP arrays and booleans; the package turns them
+into the comma-separated values and `true`/`false` strings Tembo expects.
+
+### Multiple API keys
+
+Use `withApiKey()` to act as another Tembo organization, for example one per
+tenant. It returns a copy and leaves the default client untouched.
+
+```php
+Tembo::withApiKey($tenant->tembo_key)->sessions()->start('...');
+```
+
+Watched sessions keep using that key. The key travels inside the queued job,
+so the job payload is encrypted with your `APP_KEY`.
+
+## Errors
+
+Every error extends `Cabuz\Tembo\Exceptions\TemboException`:
+
+| Exception | Status |
+|---|---|
+| `InvalidRequestException` | 400, 422 |
+| `AuthenticationException` | 401 |
+| `PermissionDeniedException` | 403 |
+| `NotFoundException` | 404 |
+| `ConflictException` | 409 |
+| `RateLimitException` | 429, after retries (`retryAfter()` gives the seconds) |
+| `ServerException` | 5xx |
+| `ConnectionException` | Tembo could not be reached |
+| `MissingApiKeyException` | No API key configured |
+
+```php
+try {
+    Tembo::sessions()->get($id);
+} catch (NotFoundException $e) {
+    $e->error();    // Tembo's error message
+    $e->status();   // 404
+    $e->response;   // the Illuminate\Http\Client\Response
+}
+```
+
+## Retries
+
+A request is retried up to 2 times (`TEMBO_RETRIES`), with a delay that
+doubles after each attempt and follows `Retry-After` when Tembo sends it:
+
+- **429 Too Many Requests**: retried for every request, since Tembo didn't
+  process it.
+- **5xx and connection errors**: retried for `GET` requests only. A failed
+  `POST` may already have started an agent, so it is never repeated.
+
+## Artisan commands
+
+```bash
+# Check the API key
+php artisan tembo:check
+
+# Start an agent; --repo takes an ID or owner/name and can be repeated
+php artisan tembo:run "Fix the flaky CheckoutTest" --repo=acme/shop --wait
+```
+
+`tembo:run` also accepts `--agent`, `--project`, `--branch` and `--timeout`.
+
+## Testing your app
+
+`Tembo::fake()` stubs the API with paths relative to it. Requests that don't
+match get an empty `200`, so tests never reach Tembo. Assert on requests with
+Laravel's `Http` assertions.
+
+```php
+use Cabuz\Tembo\Facades\Tembo;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+
+Tembo::fake([
+    'v1/sessions' => ['id' => 'session-1', 'htmlUrl' => 'https://app.tembo.io/...'],
+    'v1/sessions/*' => ['id' => 'session-1', 'state' => ['current' => 'completed']],
+]);
+
+// ... exercise your code ...
+
+Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/sessions'
+    && $request['description'] === 'Fix the login bug');
+```
+
+Patterns match the full URL, query string included, so use a trailing `*` for
+requests with filters (`'v1/repositories*'`). Values can also be
+`Http::response(...)` or `Http::sequence()` stubs. For the watcher, use
+`Queue::fake()` and `Event::fake()` as usual.
+
+## Configuration
+
+| Key | `.env` | Default |
+|---|---|---|
+| `api_key` | `TEMBO_API_KEY` | none |
+| `base_url` | `TEMBO_BASE_URL` | `https://api.tembo.io` |
+| `timeout` | `TEMBO_TIMEOUT` | `30` seconds |
+| `retries` | `TEMBO_RETRIES` | `2` |
+| `retry_delay` | `TEMBO_RETRY_DELAY` | `500` ms |
+| `watch.interval` | `TEMBO_WATCH_INTERVAL` | `30` seconds |
+| `watch.timeout` | `TEMBO_WATCH_TIMEOUT` | `3600` seconds |
+| `watch.connection` | `TEMBO_QUEUE_CONNECTION` | default connection |
+| `watch.queue` | `TEMBO_QUEUE` | default queue |
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). When Tembo ships new endpoints,
+`bin/update-endpoints` refreshes the schema snapshot and the test suite lists
+what's missing.
+
+## Security
+
+Please report security issues privately, as described in
+[SECURITY.md](SECURITY.md).
+
+## License
+
+The MIT License (MIT). See [LICENSE](LICENSE).

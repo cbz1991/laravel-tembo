@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Refresh tests/Fixtures/endpoints.json from Tembo's published OpenAPI schema.
+# Run it when Tembo ships new endpoints; EndpointCoverageTest then lists what's missing.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+curl -fsSL https://www.tembo.io/openapi.json \
+  | jq '[.paths | to_entries[] | .key as $p | .value | to_entries[]
+         | select(.key | test("^(get|post|put|patch|delete)$"))
+         | (.key | ascii_upcase) + " " + $p] | sort' \
+  > tests/Fixtures/endpoints.json
+echo "Updated tests/Fixtures/endpoints.json ($(jq length tests/Fixtures/endpoints.json) endpoints)."
