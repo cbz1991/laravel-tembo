@@ -1,0 +1,62 @@
+name: schema
+
+on:
+  # Every Monday, check Tembo's OpenAPI schema for new or removed endpoints.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Refresh the endpoint snapshot
+        run: bin/update-endpoints
+
+      - name: Open or update an issue when endpoints changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          changed() { git diff -U0 tests/Fixtures/endpoints.json | grep "^$1 " | sed -E 's/^[-+] *"//; s/",?$//' || true; }
+          added=$(changed '+')
+          removed=$(changed '-')
+
+          if [ -z "$added$removed" ]; then
+            echo "The schema has the same endpoints as the snapshot."
+            exit 0
+          fi
+
+          {
+            echo "Tembo's [OpenAPI schema](https://api.tembo.io/public-api/openapi/public) no longer matches \`tests/Fixtures/endpoints.json\`."
+            echo
+            if [ -n "$added" ]; then
+              echo "**New endpoints**"
+              echo
+              echo "$added" | sed 's/.*/- `&`/'
+              echo
+            fi
+            if [ -n "$removed" ]; then
+              echo "**Removed endpoints**"
+              echo
+              echo "$removed" | sed 's/.*/- `&`/'
+              echo
+            fi
+            echo "Run \`bin/update-endpoints\`, then \`composer test\`: EndpointCoverageTest lists what to add or remove. Check [the official SDK](https://github.com/tembo/sdk/blob/main/api.md) for the method names, and regenerate \`api.md\` with \`bin/api-reference\`."
+          } > body.md
+
+          title="Tembo API endpoints changed"
+          issue=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file body.md
+          else
+            gh issue create --title "$title" --body-file body.md
+          fi

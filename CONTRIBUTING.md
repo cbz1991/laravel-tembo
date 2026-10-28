@@ -32,6 +32,9 @@ missing methods, or list the endpoint in `NOT_WRAPPED` with a reason.
 It also fails when [`api.md`](api.md) is out of date; regenerate it with
 `bin/api-reference` after adding or changing a method.
 
+A scheduled workflow (`.github/workflows/schema.yml`) checks the schema every
+Monday and opens an issue when Tembo adds or removes endpoints.
+
 When you add a method:
 
 - Use the same structure and method name as Tembo's official
