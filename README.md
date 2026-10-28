@@ -335,6 +335,25 @@ doubles after each attempt and follows `Retry-After` when Tembo sends it:
 - **5xx and connection errors**: retried for `GET` requests only. A failed
   `POST` may already have started an agent, so it is never repeated.
 
+## Logging
+
+Like the official SDK's `TEMBO_LOG`, set the lowest level to log:
+
+```dotenv
+TEMBO_LOG=debug
+TEMBO_LOG_CHANNEL=stack   # optional, defaults to your default channel
+```
+
+| Level | Logs |
+|---|---|
+| `debug` | Every request: method, path, query, status and duration |
+| `info` | Retries |
+| `warning` | Failed requests (4xx) |
+| `error` | Server errors (5xx) and connection failures |
+
+Each level includes the ones below it. Request bodies and the API key are
+never logged. Logging is off by default.
+
 ## Artisan commands
 
 ```bash
@@ -394,6 +413,8 @@ frames you want.
 | `watch.timeout` | `TEMBO_WATCH_TIMEOUT` | `3600` seconds |
 | `watch.connection` | `TEMBO_QUEUE_CONNECTION` | default connection |
 | `watch.queue` | `TEMBO_QUEUE` | default queue |
+| `log` | `TEMBO_LOG` | none (off) |
+| `log_channel` | `TEMBO_LOG_CHANNEL` | default channel |
 | `headers` | none | `[]` |
 | `query` | none | `[]` |
 

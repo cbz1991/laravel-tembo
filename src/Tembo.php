@@ -27,11 +27,13 @@ use Cabuz\Tembo\Resources\Users;
 use Cabuz\Tembo\Support\CursorPage;
 use Composer\InstalledVersions;
 use DateTimeInterface;
+use Illuminate\Container\Container;
 use Illuminate\Http\Client\ConnectionException as HttpConnectionException;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Log\LogManager;
 use stdClass;
 use Throwable;
 
@@ -372,15 +374,29 @@ class Tembo
             $options['query'] = array_replace(static::normalizeQuery($defaults), $options['query'] ?? []);
         }
 
+        $started = hrtime(true);
+
         try {
             $response = $request->send($method, $path, $options);
         } catch (HttpConnectionException $e) {
+            $this->log('error', "Tembo API {$method} {$path} could not connect", ['error' => $e->getMessage()]);
+
             throw new ConnectionException(sprintf('Could not reach the Tembo API (%s %s): %s', $method, $path, $e->getMessage()), 0, $e);
         }
 
+        $context = [
+            'status' => $response->status(),
+            'duration_ms' => (int) ((hrtime(true) - $started) / 1_000_000),
+            'query' => $options['query'] ?? [],
+        ];
+
         if ($response->failed()) {
+            $this->log($response->serverError() ? 'error' : 'warning', "Tembo API {$method} {$path} failed with {$response->status()}", $context);
+
             throw TemboException::fromResponse($response, $method, $path);
         }
+
+        $this->log('debug', "Tembo API {$method} {$path} {$response->status()}", $context);
 
         return $response;
     }
@@ -430,21 +446,52 @@ class Tembo
 
                 return $delay * (2 ** ($attempt - 1));
             },
-            static function (Throwable $e) use ($idempotent): bool {
-                if ($e instanceof HttpConnectionException) {
-                    return $idempotent;
+            function (Throwable $e) use ($idempotent, $method): bool {
+                $status = $e instanceof RequestException ? $e->response->status() : null;
+                $retry = match (true) {
+                    $e instanceof HttpConnectionException => $idempotent,
+                    $status !== null => $status === 429 || ($idempotent && $status >= 500),
+                    default => false,
+                };
+
+                if ($retry) {
+                    $this->log('info', "Retrying Tembo API {$method} request", ['status' => $status, 'error' => $status === null ? $e->getMessage() : null]);
                 }
 
-                if ($e instanceof RequestException) {
-                    $status = $e->response->status();
-
-                    return $status === 429 || ($idempotent && $status >= 500);
-                }
-
-                return false;
+                return $retry;
             },
             throw: false,
         );
+    }
+
+    /**
+     * Write to the log when the "log" config level allows it. Bodies and the
+     * API key are never logged.
+     *
+     * @param  'debug'|'info'|'warning'|'error'  $level
+     * @param  array<string, mixed>  $context
+     */
+    protected function log(string $level, string $message, array $context = []): void
+    {
+        $levels = ['debug' => 0, 'info' => 1, 'warning' => 2, 'error' => 3];
+        $threshold = strtolower((string) $this->config('log', ''));
+        $threshold = $threshold === 'warn' ? 'warning' : $threshold;
+
+        if (! isset($levels[$threshold]) || $levels[$level] < $levels[$threshold]) {
+            return;
+        }
+
+        $container = Container::getInstance();
+
+        if (! $container->bound('log')) {
+            return;
+        }
+
+        $channel = $this->config('log_channel');
+
+        /** @var LogManager $logger */
+        $logger = $container->make('log');
+        $logger->channel(is_string($channel) && $channel !== '' ? $channel : null)->log($level, $message, $context);
     }
 
     /**

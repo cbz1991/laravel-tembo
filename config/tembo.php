@@ -63,6 +63,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Logging
+    |--------------------------------------------------------------------------
+    |
+    | log: the lowest level to log, like the official SDK's TEMBO_LOG: "debug"
+    | (every request with its status and duration, plus retries), "info"
+    | (retries), "warning" (failed requests), "error" (server and connection
+    | errors) or null to log nothing. Request bodies and the API key are never
+    | logged.
+    |
+    | log_channel: the Laravel log channel to write to; null uses the default.
+    |
+    */
+
+    'log' => env('TEMBO_LOG'),
+
+    'log_channel' => env('TEMBO_LOG_CHANNEL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Watching sessions
     |--------------------------------------------------------------------------
     |

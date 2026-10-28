@@ -18,6 +18,8 @@ use Illuminate\Http\Client\ConnectionException as HttpConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class ClientTest extends TestCase
@@ -281,5 +283,39 @@ class ClientTest extends TestCase
             && $request->url() === 'https://api.tembo.io/v1/sessions?limit=5&state=queued%2CinProgress');
         $this->assertSame(5, $tembo->config('timeout'));
         $this->assertNull(Tembo::config('headers')['X-Trace'] ?? null);
+    }
+
+    public function test_requests_and_retries_are_logged_at_the_configured_level(): void
+    {
+        $this->app['config']->set('tembo.log', 'debug');
+        Tembo::clearResolvedInstances();
+        $this->app->forgetInstance(TemboClient::class);
+        Log::spy()->shouldReceive('channel')->andReturnSelf();
+        Http::fake(['*' => Http::sequence()
+            ->push(['error' => 'busy'], 503)
+            ->push(['id' => 's1'])
+            ->push(['error' => 'Not found'], 404),
+        ]);
+
+        Tembo::sessions()->retrieve('s1');
+
+        try {
+            Tembo::sessions()->retrieve('missing');
+        } catch (NotFoundException) {
+        }
+
+        Log::shouldHaveReceived('log')->with('info', 'Retrying Tembo API GET request', Mockery::on(fn ($context) => $context['status'] === 503));
+        Log::shouldHaveReceived('log')->with('debug', 'Tembo API GET v1/sessions/s1 200', Mockery::on(fn ($context) => $context['status'] === 200 && is_int($context['duration_ms'])));
+        Log::shouldHaveReceived('log')->with('warning', 'Tembo API GET v1/sessions/missing failed with 404', Mockery::type('array'));
+    }
+
+    public function test_nothing_is_logged_by_default(): void
+    {
+        Log::spy()->shouldReceive('channel')->andReturnSelf();
+        Http::fake(['*' => Http::response(['id' => 's1'])]);
+
+        Tembo::sessions()->retrieve('s1');
+
+        Log::shouldNotHaveReceived('log');
     }
 }

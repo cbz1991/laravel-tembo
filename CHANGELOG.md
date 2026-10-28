@@ -4,6 +4,13 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.5 - 2026-10-28
+
+- Optional logging, like the official SDK's `TEMBO_LOG`: set `TEMBO_LOG` to
+  `debug`, `info`, `warning` or `error` (and optionally `TEMBO_LOG_CHANNEL`)
+  to log requests, retries and failures. Bodies and the API key are never
+  logged.
+
 ## 1.0.4 - 2026-10-28
 
 - `Tembo::withHeaders()`, `withQuery()`, `withTimeout()` and `withRetries()`
