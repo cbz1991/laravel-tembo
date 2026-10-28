@@ -400,9 +400,23 @@ requests with filters (`'v1/repositories*'`). Values can also be
 `Http::response(...)` or `Http::sequence()` stubs. For the watcher, use
 `Queue::fake()` and `Event::fake()` as usual.
 
-To fake the live stream, bind your own `Cabuz\Tembo\Live\SocketFactory` in
-the container; it returns `Cabuz\Tembo\Live\Socket` objects that hand out the
-frames you want.
+`Tembo::fakeLive()` fakes the live stream: `subscribe()` yields `ready`, a
+`delta` for each event you pass, then `idle` frames.
+
+```php
+$live = Tembo::fakeLive([
+    ['event' => 'output', 'message' => 'Running the tests'],
+]);
+
+// ... exercise your code ...
+
+$live->assertSubscribed($sessionId);
+```
+
+A loop that never breaks fails with `LiveSubscriptionException` after 100 idle
+frames instead of hanging the test suite. For full control (dropped
+connections, errors), bind your own `Cabuz\Tembo\Live\SocketFactory` in the
+container.
 
 ## Configuration
 

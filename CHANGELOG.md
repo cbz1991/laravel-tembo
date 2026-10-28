@@ -4,6 +4,13 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.8 - 2026-10-28
+
+- `Tembo::fakeLive()` fakes the live stream in tests: `subscribe()` yields
+  `ready`, the given output events, then `idle` frames, and
+  `assertSubscribed()` checks the subscription. `Tembo::fake()` now also
+  answers the live ticket request.
+
 ## 1.0.7 - 2026-10-28
 
 - A Laravel Boost guideline and skill (`resources/boost`), the counterpart of

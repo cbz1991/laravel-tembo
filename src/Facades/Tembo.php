@@ -2,7 +2,9 @@
 
 namespace Cabuz\Tembo\Facades;
 
+use Cabuz\Tembo\Live\SocketFactory;
 use Cabuz\Tembo\Tembo as TemboClient;
+use Cabuz\Tembo\Testing\FakeLive;
 use Closure;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Facades\Facade;
@@ -80,9 +82,36 @@ class Tembo extends Facade
             $stubs[$url] = is_array($response) ? Http::response($response) : $response;
         }
 
+        $stubs[$base.'/v1/live'] ??= Http::response(['ticket' => 'fake-ticket']);
         $stubs[$base.'/*'] = Http::response([]);
 
         Http::fake($stubs);
+    }
+
+    /**
+     * Fake Tembo's live API for tests. subscribe() yields "ready", then a
+     * "delta" frame for each output event given here, then "idle" frames.
+     *
+     * Each event is the delta's data, e.g. ['event' => 'output', 'message' => '...'],
+     * or a full ['type' => 'delta', 'data' => [...]] frame.
+     *
+     * @param  list<array<string, mixed>>  $events
+     */
+    public static function fakeLive(array $events = []): FakeLive
+    {
+        $deltas = array_map(
+            fn (array $event) => ($event['type'] ?? null) === 'delta' ? $event : ['type' => 'delta', 'data' => $event],
+            $events,
+        );
+
+        $fake = new FakeLive($deltas);
+        $app = static::getFacadeApplication();
+        $app?->instance(SocketFactory::class, $fake);
+
+        $base = rtrim((string) ($app?->make('config')->get('tembo.base_url') ?? 'https://api.tembo.io'), '/');
+        Http::fake([$base.'/v1/live' => Http::response(['ticket' => 'fake-ticket'])]);
+
+        return $fake;
     }
 
     protected static function getFacadeAccessor(): string

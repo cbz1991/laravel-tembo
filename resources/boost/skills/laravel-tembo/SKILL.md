@@ -92,3 +92,5 @@ Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo
 ```
 
 Unmatched Tembo requests get an empty 200. Use `Queue::fake()` / `Event::fake()` for `watch()` and its events.
+
+Fake the live stream with `$live = Tembo::fakeLive([['event' => 'output', 'message' => '...']])`; `subscribe()` then yields `ready`, one `delta` per event and `idle` frames. Assert with `$live->assertSubscribed($sessionId)`.
