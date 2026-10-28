@@ -24,7 +24,6 @@ class EndpointCoverageTest extends TestCase
     private const NOT_WRAPPED = [
         'GET /oauth/context' => 'OAuth tokens only; API keys use authContext().',
         'GET /v1/live' => 'The WebSocket upgrade; opened by live()->connect().',
-        'PUT /v1/users/{userId}/profile-picture' => 'Binary upload; use Tembo::send() directly.',
     ];
 
     /**
@@ -138,6 +137,7 @@ class EndpointCoverageTest extends TestCase
                 in_array('string', $names, true) => 'id1',
                 in_array('int', $names, true) => 1,
                 in_array('array', $names, true) => [],
+                in_array('mixed', $names, true) => 'contents',
                 default => null,
             };
         }

@@ -4,6 +4,13 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.3 - 2026-10-28
+
+- `users()->profilePicture()->update()` uploads a profile picture from an
+  uploaded file, a file object, a stream or the raw bytes. This was the last
+  REST endpoint without an SDK method.
+- `Tembo::upload()` sends any multipart/form-data request.
+
 ## 1.0.2 - 2026-10-28
 
 - Live streaming of a session's output over Tembo's WebSocket API, like the

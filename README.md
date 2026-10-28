@@ -220,6 +220,7 @@ Tembo::agents()->runs()->retrieve($agentId, $runId);
 Tembo::sessions()->diffs()->list($sessionId);
 Tembo::organizations()->secrets()->create($organizationId, ['key' => 'NPM_TOKEN', 'value' => '...']);
 Tembo::projects()->environmentVariables()->create($projectId, ['APP_ENV' => 'testing']);
+Tembo::users()->profilePicture()->update($userId, $request->file('avatar'));
 ```
 
 | Accessor | Nested resources and extra methods |

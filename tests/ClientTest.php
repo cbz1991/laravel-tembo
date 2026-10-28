@@ -16,6 +16,7 @@ use Cabuz\Tembo\Facades\Tembo;
 use Cabuz\Tembo\Tembo as TemboClient;
 use Illuminate\Http\Client\ConnectionException as HttpConnectionException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -236,5 +237,27 @@ class ClientTest extends TestCase
     public function test_the_client_is_a_singleton_with_a_string_alias(): void
     {
         $this->assertSame($this->app->make(TemboClient::class), $this->app->make('tembo'));
+    }
+
+    public function test_profile_pictures_are_uploaded_as_multipart(): void
+    {
+        Http::fake(['*' => Http::response(['userId' => 'u1', 'url' => 'https://cdn.example.com/u1.png'])]);
+        $path = tempnam(sys_get_temp_dir(), 'tembo');
+        file_put_contents($path, 'png-bytes');
+
+        $result = Tembo::users()->profilePicture()->update('u1', UploadedFile::fake()->createWithContent('me.png', 'png-bytes'));
+        Tembo::users()->profilePicture()->update('u1', new \SplFileInfo($path));
+        Tembo::users()->profilePicture()->update('u1', 'raw-bytes', 'avatar.jpg');
+
+        $this->assertSame('https://cdn.example.com/u1.png', $result['url']);
+
+        $sent = Http::recorded()->map(fn ($pair) => $pair[0]);
+        $this->assertSame(['PUT', 'PUT', 'PUT'], $sent->map->method()->all());
+        $this->assertTrue($sent->every(fn (Request $request) => $request->isMultipart()
+            && $request->url() === 'https://api.tembo.io/v1/users/u1/profile-picture'));
+        $this->assertSame(['me.png', basename($path), 'avatar.jpg'], $sent->map(fn (Request $request) => $request->data()[0]['filename'])->all());
+        $this->assertSame('raw-bytes', $sent[2]->data()[0]['contents']);
+
+        unlink($path);
     }
 }

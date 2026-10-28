@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Http;
  * @method static \Cabuz\Tembo\Support\CursorPage paginate(string $path, array<string, mixed> $query = [], string $itemsKey = 'items')
  * @method static array<string, mixed> request(string $method, string $path, array<string, mixed> $query = [], array<string, mixed>|null $data = null)
  * @method static \Illuminate\Http\Client\Response send(string $method, string $path, array<string, mixed> $query = [], array<string, mixed>|null $data = null)
+ * @method static array<string, mixed> upload(string $method, string $path, array<int, array<string, mixed>> $parts)
  *
  * @see TemboClient
  */

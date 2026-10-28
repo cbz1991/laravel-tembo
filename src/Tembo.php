@@ -299,8 +299,38 @@ class Tembo
             $options['json'] = $data === [] ? new stdClass : $data;
         }
 
+        return $this->dispatch($this->pendingRequest($method), $method, $path, $options);
+    }
+
+    /**
+     * Send a multipart/form-data request and return the decoded JSON body.
+     *
+     * @param  list<array{name: string, contents: mixed, filename?: string}>  $parts
+     * @return array<string, mixed>
+     *
+     * @throws TemboException
+     */
+    public function upload(string $method, string $path, array $parts): array
+    {
+        $method = strtoupper($method);
+        $path = ltrim($path, '/');
+
+        $response = $this->dispatch($this->pendingRequest($method, json: false)->asMultipart(), $method, $path, ['multipart' => $parts]);
+
+        $json = $response->json();
+
+        return is_array($json) ? $json : [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     *
+     * @throws TemboException
+     */
+    protected function dispatch(PendingRequest $request, string $method, string $path, array $options): Response
+    {
         try {
-            $response = $this->pendingRequest($method)->send($method, $path, $options);
+            $response = $request->send($method, $path, $options);
         } catch (HttpConnectionException $e) {
             throw new ConnectionException(sprintf('Could not reach the Tembo API (%s %s): %s', $method, $path, $e->getMessage()), 0, $e);
         }
@@ -314,8 +344,10 @@ class Tembo
 
     /**
      * The configured HTTP request, before the method and URL are applied.
+     *
+     * @param  bool  $json  false leaves the body format to the caller (e.g. multipart).
      */
-    public function pendingRequest(string $method = 'GET'): PendingRequest
+    public function pendingRequest(string $method = 'GET', bool $json = true): PendingRequest
     {
         $apiKey = $this->config('api_key');
 
@@ -327,9 +359,12 @@ class Tembo
             ->baseUrl(rtrim((string) $this->config('base_url', 'https://api.tembo.io'), '/'))
             ->withToken($apiKey)
             ->acceptJson()
-            ->asJson()
             ->withUserAgent('cabuz/laravel-tembo/'.static::version())
             ->timeout((int) $this->config('timeout', 30));
+
+        if ($json) {
+            $request->asJson();
+        }
 
         $retries = max(0, (int) $this->config('retries', 2));
 
