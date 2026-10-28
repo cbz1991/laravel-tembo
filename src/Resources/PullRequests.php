@@ -17,7 +17,7 @@ class PullRequests extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $pullRequestId): array
+    public function retrieve(string $pullRequestId): array
     {
         return $this->tembo->get($this->path('v1/pull-requests/%s', $pullRequestId));
     }

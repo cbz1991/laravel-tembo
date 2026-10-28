@@ -46,6 +46,7 @@ class EndpointCoverageTest extends TestCase
             foreach ((new ReflectionClass($resource))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                 if ($method->getDeclaringClass()->getName() === Resource::class
                     || $method->isConstructor()
+                    || $this->returnsResource($method)
                     || in_array($method->getName(), self::SKIPPED_METHODS, true)) {
                     continue;
                 }
@@ -83,6 +84,8 @@ class EndpointCoverageTest extends TestCase
     }
 
     /**
+     * Every resource and sub-resource reachable from the client.
+     *
      * @return list<resource>
      */
     private function resources(Tembo $tembo): array
@@ -90,16 +93,29 @@ class EndpointCoverageTest extends TestCase
         $resources = [];
 
         foreach ((new ReflectionClass($tembo))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            $type = $method->getReturnType();
-
-            if ($type instanceof ReflectionNamedType && is_subclass_of($type->getName(), Resource::class)) {
+            if ($this->returnsResource($method)) {
                 $resources[] = $method->invoke($tembo);
             }
         }
 
         $this->assertCount(18, $resources);
 
+        for ($i = 0; $i < count($resources); $i++) {
+            foreach ((new ReflectionClass($resources[$i]))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                if ($this->returnsResource($method)) {
+                    $resources[] = $method->invoke($resources[$i]);
+                }
+            }
+        }
+
         return $resources;
+    }
+
+    private function returnsResource(ReflectionMethod $method): bool
+    {
+        $type = $method->getReturnType();
+
+        return $type instanceof ReflectionNamedType && is_subclass_of($type->getName(), Resource::class);
     }
 
     /**

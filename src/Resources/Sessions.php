@@ -4,6 +4,11 @@ namespace Cabuz\Tembo\Resources;
 
 use Cabuz\Tembo\Exceptions\SessionTimeoutException;
 use Cabuz\Tembo\Jobs\WatchSession;
+use Cabuz\Tembo\Resources\Sessions\Commands;
+use Cabuz\Tembo\Resources\Sessions\Diffs;
+use Cabuz\Tembo\Resources\Sessions\Inputs;
+use Cabuz\Tembo\Resources\Sessions\Queue;
+use Cabuz\Tembo\Resources\Sessions\Sources;
 use Cabuz\Tembo\Support\CursorPage;
 use Cabuz\Tembo\Support\SessionState;
 use Illuminate\Foundation\Bus\PendingDispatch;
@@ -50,7 +55,7 @@ class Sessions extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $sessionId): array
+    public function retrieve(string $sessionId): array
     {
         return $this->tembo->get($this->path('v1/sessions/%s', $sessionId));
     }
@@ -82,11 +87,12 @@ class Sessions extends Resource
     }
 
     /**
+     * @param  array<string, mixed>  $query  cancelQueued
      * @return array<string, mixed>
      */
-    public function stop(string $sessionId): array
+    public function stop(string $sessionId, array $query = []): array
     {
-        return $this->tembo->post($this->path('v1/sessions/%s/stop', $sessionId));
+        return $this->tembo->post($this->path('v1/sessions/%s/stop', $sessionId), null, $query);
     }
 
     /**
@@ -102,85 +108,11 @@ class Sessions extends Resource
     }
 
     /**
-     * @param  array<string, mixed>  $query
-     */
-    public function messages(string $sessionId, array $query = []): CursorPage
-    {
-        return $this->tembo->messages()->list(['sessionId' => $sessionId] + $query);
-    }
-
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function inputs(string $sessionId, array $query = []): CursorPage
-    {
-        return $this->tembo->paginate($this->path('v1/sessions/%s/inputs', $sessionId), $query);
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    public function updateInput(string $sessionId, string $inputId, array $data): array
-    {
-        return $this->tembo->patch($this->path('v1/sessions/%s/inputs/%s', $sessionId, $inputId), $data);
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    public function updateQueue(string $sessionId, array $data): array
-    {
-        return $this->tembo->put($this->path('v1/sessions/%s/queue', $sessionId), $data);
-    }
-
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function commands(string $sessionId, array $query = []): CursorPage
-    {
-        return $this->tembo->paginate($this->path('v1/sessions/%s/commands', $sessionId), $query);
-    }
-
-    /**
      * @param  array<string, mixed>  $query  messageId, after, limit, cursor
      */
-    public function events(string $sessionId, array $query = []): CursorPage
+    public function listEvents(string $sessionId, array $query = []): CursorPage
     {
         return $this->tembo->paginate($this->path('v1/sessions/%s/events', $sessionId), $query);
-    }
-
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function diffs(string $sessionId, array $query = []): CursorPage
-    {
-        return $this->tembo->paginate($this->path('v1/sessions/%s/diffs', $sessionId), $query);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function diff(string $sessionId, string $diffId): array
-    {
-        return $this->tembo->get($this->path('v1/sessions/%s/diffs/%s', $sessionId, $diffId));
-    }
-
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function sources(array $query = []): CursorPage
-    {
-        return $this->tembo->paginate('v1/sessions/sources', $query);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function source(string $sourceId): array
-    {
-        return $this->tembo->get($this->path('v1/sessions/sources/%s', $sourceId));
     }
 
     /**
@@ -188,7 +120,7 @@ class Sessions extends Resource
      */
     public function state(string $sessionId): ?string
     {
-        return SessionState::of($this->get($sessionId));
+        return SessionState::of($this->retrieve($sessionId));
     }
 
     /**
@@ -208,7 +140,7 @@ class Sessions extends Resource
         $elapsed = 0;
 
         while (true) {
-            $session = $this->get($sessionId);
+            $session = $this->retrieve($sessionId);
 
             if (SessionState::isFinished($session)) {
                 return $session;
@@ -244,5 +176,30 @@ class Sessions extends Resource
             time() + $timeout,
             $apiKey !== config('tembo.api_key') && is_string($apiKey) ? $apiKey : null,
         );
+    }
+
+    public function sources(): Sources
+    {
+        return new Sources($this->tembo);
+    }
+
+    public function diffs(): Diffs
+    {
+        return new Diffs($this->tembo);
+    }
+
+    public function inputs(): Inputs
+    {
+        return new Inputs($this->tembo);
+    }
+
+    public function queue(): Queue
+    {
+        return new Queue($this->tembo);
+    }
+
+    public function commands(): Commands
+    {
+        return new Commands($this->tembo);
     }
 }

@@ -161,7 +161,7 @@ $agent = Tembo::agents()->create([
     'repositoryIds' => [$repositoryId],
 ]);
 
-Tembo::agents()->createSchedule($agent['id'], ['cron' => '0 6 * * 1']);
+Tembo::agents()->schedules()->create($agent['id'], ['cron' => '0 6 * * 1']);
 
 // Run it now; the payload reaches the agent as custom input.
 $run = Tembo::agents()->run($agent['id'], ['reason' => 'Security advisory CVE-2026-1234']);
@@ -169,26 +169,38 @@ $run = Tembo::agents()->run($agent['id'], ['reason' => 'Security advisory CVE-20
 
 ### Everything else
 
-Each resource follows the same naming: `list()`, `create()`, `get()`,
-`update()`, `delete()`, and `listX()` / `createX()` / `getX()` / `updateX()` /
-`deleteX()` for nested resources.
+The structure and method names follow Tembo's official
+[TypeScript SDK](https://github.com/tembo/sdk/blob/main/api.md), so its API
+reference applies here too. Each resource has `list()`, `create()`,
+`retrieve()`, `update()` and `delete()` where the API supports them. Nested
+resources are reached through an accessor and take the parent ID first:
 
-| Accessor | Covers |
+```php
+Tembo::agents()->runs()->retrieve($agentId, $runId);
+Tembo::sessions()->diffs()->list($sessionId);
+Tembo::organizations()->secrets()->create($organizationId, ['key' => 'NPM_TOKEN', 'value' => '...']);
+Tembo::projects()->environmentVariables()->create($projectId, ['APP_ENV' => 'testing']);
+```
+
+| Accessor | Nested resources and extra methods |
 |---|---|
-| `sessions()` | Sessions, inputs, queue, commands, events, diffs, sources |
+| `sessions()` | `sources()`, `diffs()`, `inputs()`, `queue()`, `commands()`; `fork()`, `stop()`, `listEvents()` |
 | `messages()` | Session messages |
-| `agents()` | Agents, templates, instruction revisions, schedules, triggers, runs |
-| `projects()` | Projects, environment variables, snapshots, builds, schedules |
+| `agents()` | `templates()`, `schedules()`, `triggers()`, `runs()`, `contentRevisions()` |
+| `projects()` | `environmentVariables()`, `snapshots()`, `builds()`, `schedules()`; `duplicate()`, `updateDefaults()` |
 | `repositories()` | Repositories |
 | `pullRequests()` | Pull requests opened by sessions |
 | `artifacts()` | Session artifacts |
-| `integrations()` | Integrations, providers, triggers, sync, rate limits, Sentry and Slack lookups |
-| `mcpConnections()` | MCP connections |
-| `skills()` | Skills and the skills marketplace |
+| `integrations()` | `providers()`, `triggers()`; `authorize()`, `test()`, `sync()`, `syncAll()`, `retrieveSyncStatus()`, `retrieveRateLimit()`, `listSentryEnvironments()`, `listSlackChannels()` |
+| `mcpConnections()` | `authorize()`, `test()` |
+| `skills()` | `marketplace()` |
 | `models()`, `runtimes()` | Available agent models and runtimes |
-| `organizations()` | Organizations, members, secrets, settings, subscriptions |
-| `users()`, `apiKeys()` | Users, settings, connected accounts, API keys |
-| `billing()`, `insights()`, `pins()` | Billing and usage, insights, pins |
+| `organizations()` | `members()`, `secrets()`, `settings()`, `subscriptions()` |
+| `users()` | `settings()`, `connectedAccounts()`, `subscriptions()`, `profilePicture()`; `me()` |
+| `apiKeys()` | API keys |
+| `billing()` | `retrieve()`, `listUsage()` |
+| `insights()` | `retrieve()`, `update()`, `listMembers()`, `listRepositories()` |
+| `pins()` | Pins |
 
 For an endpoint Tembo adds before this package wraps it, use the raw methods:
 
@@ -246,7 +258,7 @@ Every error extends `Cabuz\Tembo\Exceptions\TemboException`:
 
 ```php
 try {
-    Tembo::sessions()->get($id);
+    Tembo::sessions()->retrieve($id);
 } catch (NotFoundException $e) {
     $e->error();    // Tembo's error message
     $e->status();   // 404

@@ -2,7 +2,10 @@
 
 namespace Cabuz\Tembo\Resources;
 
-use Cabuz\Tembo\Support\CursorPage;
+use Cabuz\Tembo\Resources\Users\ConnectedAccounts;
+use Cabuz\Tembo\Resources\Users\ProfilePicture;
+use Cabuz\Tembo\Resources\Users\Settings;
+use Cabuz\Tembo\Resources\Users\Subscriptions;
 
 class Users extends Resource
 {
@@ -17,82 +20,37 @@ class Users extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $userId): array
+    public function retrieve(string $userId): array
     {
         return $this->tembo->get($this->path('v1/users/%s', $userId));
     }
 
     /**
+     * @param  array<string, mixed>  $data  deletionQuestionnaire
      * @return array<string, mixed>
      */
-    public function delete(string $userId): array
+    public function delete(string $userId, array $data = []): array
     {
-        return $this->tembo->delete($this->path('v1/users/%s', $userId));
+        return $this->tembo->delete($this->path('v1/users/%s', $userId), [], $data);
     }
 
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function connectedAccounts(string $userId, array $query = []): CursorPage
+    public function settings(): Settings
     {
-        return $this->tembo->paginate($this->path('v1/users/%s/connected-accounts', $userId), $query);
+        return new Settings($this->tembo);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function connectedAccount(string $userId, string $connectedAccountId): array
+    public function connectedAccounts(): ConnectedAccounts
     {
-        return $this->tembo->get($this->path('v1/users/%s/connected-accounts/%s', $userId, $connectedAccountId));
+        return new ConnectedAccounts($this->tembo);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function settings(string $userId): array
+    public function subscriptions(): Subscriptions
     {
-        return $this->tembo->get($this->path('v1/users/%s/settings', $userId));
+        return new Subscriptions($this->tembo);
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    public function updateSettings(string $userId, array $data): array
+    public function profilePicture(): ProfilePicture
     {
-        return $this->tembo->patch($this->path('v1/users/%s/settings', $userId), $data);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function subscriptions(string $userId): array
-    {
-        return $this->tembo->get($this->path('v1/users/%s/subscriptions', $userId));
-    }
-
-    /**
-     * @param  array<string, mixed>  $data  provider and idempotencyKey are required.
-     * @return array<string, mixed>
-     */
-    public function resetSubscriptions(string $userId, array $data): array
-    {
-        return $this->tembo->post($this->path('v1/users/%s/subscriptions/reset', $userId), $data);
-    }
-
-    /**
-     * The raw image bytes of the user's profile picture.
-     */
-    public function profilePicture(string $userId): string
-    {
-        return $this->tembo->send('GET', $this->path('v1/users/%s/profile-picture', $userId))->body();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function deleteProfilePicture(string $userId): array
-    {
-        return $this->tembo->delete($this->path('v1/users/%s/profile-picture', $userId));
+        return new ProfilePicture($this->tembo);
     }
 }

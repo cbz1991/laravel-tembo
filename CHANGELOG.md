@@ -4,6 +4,23 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.1 - 2026-10-28
+
+- **Breaking:** resources now have the same structure and method names as
+  Tembo's official TypeScript SDK. Nested resources have their own accessor
+  (`Tembo::agents()->runs()->list($agentId)` instead of `listRuns()`), and
+  `get()` is now `retrieve()`. Other renames: `sessions()->events()` is
+  `listEvents()`, `billing()->usage()` is `listUsage()`, `insights()->members()`
+  and `repositories()` are `listMembers()` and `listRepositories()`, and the
+  integration lookups are `retrieveSyncStatus()`, `retrieveRateLimit()`,
+  `listSentryEnvironments()` and `listSlackChannels()`. `sessions()->messages()`
+  is removed; use `messages()->list(['sessionId' => $id])`.
+- `sessions()->stop()` accepts `cancelQueued`, `integrations()->authorize()`
+  accepts `returnUrl` and `capability`, `integrations()->syncAll()` and
+  `users()->delete()` accept a body, and `retrieveSyncStatus()` accepts an
+  `integrationId` filter.
+- `Tembo::delete()` accepts a request body.
+
 ## 1.0.0 - 2026-10-28
 
 - First release.

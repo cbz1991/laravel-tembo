@@ -233,11 +233,12 @@ class Tembo
 
     /**
      * @param  array<string, mixed>  $query
+     * @param  array<string, mixed>|null  $data
      * @return array<string, mixed>
      */
-    public function delete(string $path, array $query = []): array
+    public function delete(string $path, array $query = [], ?array $data = null): array
     {
-        return $this->request('DELETE', $path, $query);
+        return $this->request('DELETE', $path, $query, $data);
     }
 
     /**

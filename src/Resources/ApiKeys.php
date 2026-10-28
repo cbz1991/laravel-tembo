@@ -29,25 +29,25 @@ class ApiKeys extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $id): array
+    public function retrieve(string $apiKeyId): array
     {
-        return $this->tembo->get($this->path('v1/api-keys/%s', $id));
+        return $this->tembo->get($this->path('v1/api-keys/%s', $apiKeyId));
     }
 
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function update(string $id, array $data): array
+    public function update(string $apiKeyId, array $data): array
     {
-        return $this->tembo->patch($this->path('v1/api-keys/%s', $id), $data);
+        return $this->tembo->patch($this->path('v1/api-keys/%s', $apiKeyId), $data);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function delete(string $id): array
+    public function delete(string $apiKeyId): array
     {
-        return $this->tembo->delete($this->path('v1/api-keys/%s', $id));
+        return $this->tembo->delete($this->path('v1/api-keys/%s', $apiKeyId));
     }
 }

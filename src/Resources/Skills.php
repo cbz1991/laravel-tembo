@@ -2,6 +2,7 @@
 
 namespace Cabuz\Tembo\Resources;
 
+use Cabuz\Tembo\Resources\Skills\Marketplace;
 use Cabuz\Tembo\Support\CursorPage;
 
 /**
@@ -29,41 +30,30 @@ class Skills extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $id): array
+    public function retrieve(string $skillId): array
     {
-        return $this->tembo->get($this->path('v1/skills/%s', $id));
+        return $this->tembo->get($this->path('v1/skills/%s', $skillId));
     }
 
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function update(string $id, array $data): array
+    public function update(string $skillId, array $data): array
     {
-        return $this->tembo->patch($this->path('v1/skills/%s', $id), $data);
+        return $this->tembo->patch($this->path('v1/skills/%s', $skillId), $data);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function delete(string $id): array
+    public function delete(string $skillId): array
     {
-        return $this->tembo->delete($this->path('v1/skills/%s', $id));
+        return $this->tembo->delete($this->path('v1/skills/%s', $skillId));
     }
 
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function listMarketplace(array $query = []): CursorPage
+    public function marketplace(): Marketplace
     {
-        return $this->tembo->paginate('v1/skills/marketplace', $query);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getMarketplace(string $skillId): array
-    {
-        return $this->tembo->get($this->path('v1/skills/marketplace/%s', $skillId));
+        return new Marketplace($this->tembo);
     }
 }

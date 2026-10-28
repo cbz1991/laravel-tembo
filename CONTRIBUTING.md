@@ -32,10 +32,11 @@ missing methods, or list the endpoint in `NOT_WRAPPED` with a reason.
 
 When you add a method:
 
-- Put it on the resource that matches the endpoint's tag in the schema.
-- Follow the naming: `list()`, `create()`, `get()`, `update()`, `delete()`,
-  and `listX()` / `createX()` / `getX()` / `updateX()` / `deleteX()` for
-  nested resources.
+- Use the same structure and method name as Tembo's official
+  [TypeScript SDK](https://github.com/tembo/sdk/blob/main/api.md): nested
+  resources get their own class under `src/Resources/<Parent>/` and an
+  accessor on the parent (`agents()->runs()`), and their methods take the
+  parent ID first.
 - Take request bodies and filters as arrays and return the decoded JSON, so
   new fields Tembo adds work without a release.
 - Never retry a write after a server or connection error: it may already have

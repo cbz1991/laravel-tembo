@@ -50,13 +50,35 @@ class SessionsTest extends TestCase
             && $request->data() === ['sessionId' => 's1', 'content' => 'Also add a test', 'deliveryMode' => 'steer']);
     }
 
-    public function test_messages_lists_the_session_messages(): void
+    public function test_sub_resources_take_the_parent_id_first(): void
     {
         Http::fake(['*' => Http::response(['items' => [], 'nextCursor' => null])]);
 
-        Tembo::sessions()->messages('s1', ['limit' => 10]);
+        Tembo::sessions()->diffs()->retrieve('s1', 'd1');
+        Tembo::agents()->runs()->list('a1', ['limit' => 10]);
 
-        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/messages?sessionId=s1&limit=10');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/sessions/s1/diffs/d1');
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/agents/a1/runs?limit=10');
+    }
+
+    public function test_stop_can_cancel_queued_tasks(): void
+    {
+        Http::fake(['*' => Http::response(['cancelledSessions' => 1])]);
+
+        Tembo::sessions()->stop('s1', ['cancelQueued' => true]);
+
+        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+            && $request->url() === 'https://api.tembo.io/v1/sessions/s1/stop?cancelQueued=true');
+    }
+
+    public function test_deleting_a_user_sends_the_questionnaire_as_the_body(): void
+    {
+        Http::fake(['*' => Http::response([])]);
+
+        Tembo::users()->delete('u1', ['deletionQuestionnaire' => ['reasons' => ['other']]]);
+
+        Http::assertSent(fn (Request $request) => $request->method() === 'DELETE'
+            && $request->data() === ['deletionQuestionnaire' => ['reasons' => ['other']]]);
     }
 
     public function test_state_reads_the_current_state(): void
@@ -110,7 +132,7 @@ class SessionsTest extends TestCase
     {
         Http::fake(['*' => Http::response(['items' => []])]);
 
-        Tembo::projects()->setEnvironmentVariables('p1', ['APP_ENV' => 'testing', 'DEBUG' => 'true']);
+        Tembo::projects()->environmentVariables()->create('p1', ['APP_ENV' => 'testing', 'DEBUG' => 'true']);
 
         Http::assertSent(fn (Request $request) => $request->data() === ['secrets' => [
             ['key' => 'APP_ENV', 'value' => 'testing'],

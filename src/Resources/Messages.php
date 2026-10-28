@@ -28,7 +28,7 @@ class Messages extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $messageId): array
+    public function retrieve(string $messageId): array
     {
         return $this->tembo->get($this->path('v1/messages/%s', $messageId));
     }

@@ -10,7 +10,7 @@ class Insights extends Resource
      * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
-    public function get(array $query = []): array
+    public function retrieve(array $query = []): array
     {
         return $this->tembo->get('v1/insights', $query);
     }
@@ -27,7 +27,7 @@ class Insights extends Resource
     /**
      * @param  array<string, mixed>  $query
      */
-    public function members(array $query = []): CursorPage
+    public function listMembers(array $query = []): CursorPage
     {
         return $this->tembo->paginate('v1/insights/members', $query);
     }
@@ -35,7 +35,7 @@ class Insights extends Resource
     /**
      * @param  array<string, mixed>  $query
      */
-    public function repositories(array $query = []): CursorPage
+    public function listRepositories(array $query = []): CursorPage
     {
         return $this->tembo->paginate('v1/insights/repositories', $query);
     }

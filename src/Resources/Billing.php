@@ -9,7 +9,7 @@ class Billing extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(): array
+    public function retrieve(): array
     {
         return $this->tembo->get('v1/billing');
     }
@@ -17,7 +17,7 @@ class Billing extends Resource
     /**
      * @param  array<string, mixed>  $query
      */
-    public function usage(array $query = []): CursorPage
+    public function listUsage(array $query = []): CursorPage
     {
         return $this->tembo->paginate('v1/billing/usage', $query);
     }

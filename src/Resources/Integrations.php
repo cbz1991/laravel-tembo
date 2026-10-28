@@ -2,6 +2,8 @@
 
 namespace Cabuz\Tembo\Resources;
 
+use Cabuz\Tembo\Resources\Integrations\Providers;
+use Cabuz\Tembo\Resources\Integrations\Triggers;
 use Cabuz\Tembo\Support\CursorPage;
 
 /**
@@ -29,7 +31,7 @@ class Integrations extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $integrationId): array
+    public function retrieve(string $integrationId): array
     {
         return $this->tembo->get($this->path('v1/integrations/%s', $integrationId));
     }
@@ -52,58 +54,20 @@ class Integrations extends Resource
     }
 
     /**
-     * @param  array<string, mixed>  $query
+     * @param  array<string, mixed>  $query  returnUrl, capability
+     * @return array<string, mixed>
      */
-    public function providers(array $query = []): CursorPage
+    public function authorize(string $integrationId, array $query = []): array
     {
-        return $this->tembo->paginate('v1/integrations/providers', $query);
-    }
-
-    /**
-     * Every trigger agents can listen to, across integrations.
-     *
-     * @param  array<string, mixed>  $query
-     */
-    public function triggers(array $query = []): CursorPage
-    {
-        return $this->tembo->paginate('v1/integrations/triggers', $query);
+        return $this->tembo->post($this->path('v1/integrations/%s/authorize', $integrationId), null, $query);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function trigger(string $integrationId, string $triggerName): array
+    public function test(string $integrationId): array
     {
-        return $this->tembo->get($this->path('v1/integrations/%s/triggers/%s', $integrationId, $triggerName));
-    }
-
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    public function triggerFilterOptions(string $integrationId, string $triggerName, string $field, array $query = []): CursorPage
-    {
-        return $this->tembo->paginate(
-            $this->path('v1/integrations/%s/triggers/%s/filter-options/%s', $integrationId, $triggerName, $field),
-            $query,
-        );
-    }
-
-    /**
-     * Sync all eligible integrations.
-     *
-     * @return array<string, mixed>
-     */
-    public function syncAll(): array
-    {
-        return $this->tembo->post('v1/integrations/sync', []);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function syncStatus(): array
-    {
-        return $this->tembo->get('v1/integrations/sync/status');
+        return $this->tembo->post($this->path('v1/integrations/%s/test', $integrationId));
     }
 
     /**
@@ -118,25 +82,29 @@ class Integrations extends Resource
     }
 
     /**
+     * Sync all eligible integrations.
+     *
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function authorize(string $integrationId): array
+    public function syncAll(array $data = []): array
     {
-        return $this->tembo->post($this->path('v1/integrations/%s/authorize', $integrationId));
+        return $this->tembo->post('v1/integrations/sync', $data);
+    }
+
+    /**
+     * @param  array<string, mixed>  $query  integrationId
+     * @return array<string, mixed>
+     */
+    public function retrieveSyncStatus(array $query = []): array
+    {
+        return $this->tembo->get('v1/integrations/sync/status', $query);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function test(string $integrationId): array
-    {
-        return $this->tembo->post($this->path('v1/integrations/%s/test', $integrationId));
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function rateLimit(string $integrationId): array
+    public function retrieveRateLimit(string $integrationId): array
     {
         return $this->tembo->get($this->path('v1/integrations/%s/rate-limit', $integrationId));
     }
@@ -144,7 +112,7 @@ class Integrations extends Resource
     /**
      * @param  array<string, mixed>  $query
      */
-    public function sentryEnvironments(string $integrationId, array $query = []): CursorPage
+    public function listSentryEnvironments(string $integrationId, array $query = []): CursorPage
     {
         return $this->tembo->paginate($this->path('v1/integrations/%s/sentry-environments', $integrationId), $query);
     }
@@ -152,17 +120,18 @@ class Integrations extends Resource
     /**
      * @param  array<string, mixed>  $query
      */
-    public function slackChannels(string $integrationId, array $query = []): CursorPage
+    public function listSlackChannels(string $integrationId, array $query = []): CursorPage
     {
         return $this->tembo->paginate($this->path('v1/integrations/%s/slack-channels', $integrationId), $query);
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    public function discoverSnykOrganizations(array $data): array
+    public function providers(): Providers
     {
-        return $this->tembo->post('v1/integrations/providers/snyk/organizations', $data);
+        return new Providers($this->tembo);
+    }
+
+    public function triggers(): Triggers
+    {
+        return new Triggers($this->tembo);
     }
 }

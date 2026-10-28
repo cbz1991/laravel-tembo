@@ -53,7 +53,7 @@ class WatchSession implements ShouldBeEncrypted, ShouldQueue
             $tembo = $tembo->withApiKey($this->apiKey);
         }
 
-        $session = $tembo->sessions()->get($this->sessionId);
+        $session = $tembo->sessions()->retrieve($this->sessionId);
 
         $event = match (SessionState::of($session)) {
             SessionState::COMPLETED => new SessionCompleted($this->sessionId, $session, $this->context),

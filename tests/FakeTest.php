@@ -15,7 +15,7 @@ class FakeTest extends TestCase
             'v1/users/me' => Http::response(['error' => 'Nope'], 401),
         ]);
 
-        $this->assertSame('Faked', Tembo::sessions()->get('s1')['title']);
+        $this->assertSame('Faked', Tembo::sessions()->retrieve('s1')['title']);
         Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/sessions/s1');
     }
 
@@ -23,7 +23,7 @@ class FakeTest extends TestCase
     {
         Tembo::fake();
 
-        $this->assertSame([], Tembo::billing()->get());
+        $this->assertSame([], Tembo::billing()->retrieve());
     }
 
     public function test_fake_works_without_an_api_key(): void

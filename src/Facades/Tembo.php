@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Http;
  * @method static array<string, mixed> post(string $path, array<string, mixed>|null $data = null, array<string, mixed> $query = [])
  * @method static array<string, mixed> put(string $path, array<string, mixed>|null $data = null, array<string, mixed> $query = [])
  * @method static array<string, mixed> patch(string $path, array<string, mixed>|null $data = null, array<string, mixed> $query = [])
- * @method static array<string, mixed> delete(string $path, array<string, mixed> $query = [])
+ * @method static array<string, mixed> delete(string $path, array<string, mixed> $query = [], array<string, mixed>|null $data = null)
  * @method static \Cabuz\Tembo\Support\CursorPage paginate(string $path, array<string, mixed> $query = [], string $itemsKey = 'items')
  * @method static array<string, mixed> request(string $method, string $path, array<string, mixed> $query = [], array<string, mixed>|null $data = null)
  * @method static \Illuminate\Http\Client\Response send(string $method, string $path, array<string, mixed> $query = [], array<string, mixed>|null $data = null)

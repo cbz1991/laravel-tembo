@@ -29,41 +29,41 @@ class McpConnections extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $id): array
+    public function retrieve(string $mcpConnectionId): array
     {
-        return $this->tembo->get($this->path('v1/mcp-connections/%s', $id));
+        return $this->tembo->get($this->path('v1/mcp-connections/%s', $mcpConnectionId));
     }
 
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function update(string $id, array $data): array
+    public function update(string $mcpConnectionId, array $data): array
     {
-        return $this->tembo->patch($this->path('v1/mcp-connections/%s', $id), $data);
+        return $this->tembo->patch($this->path('v1/mcp-connections/%s', $mcpConnectionId), $data);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function delete(string $id): array
+    public function delete(string $mcpConnectionId): array
     {
-        return $this->tembo->delete($this->path('v1/mcp-connections/%s', $id));
+        return $this->tembo->delete($this->path('v1/mcp-connections/%s', $mcpConnectionId));
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function authorize(string $id): array
+    public function authorize(string $mcpConnectionId): array
     {
-        return $this->tembo->post($this->path('v1/mcp-connections/%s/authorize', $id));
+        return $this->tembo->post($this->path('v1/mcp-connections/%s/authorize', $mcpConnectionId));
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function test(string $id): array
+    public function test(string $mcpConnectionId): array
     {
-        return $this->tembo->post($this->path('v1/mcp-connections/%s/test', $id));
+        return $this->tembo->post($this->path('v1/mcp-connections/%s/test', $mcpConnectionId));
     }
 }

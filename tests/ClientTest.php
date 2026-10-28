@@ -80,7 +80,7 @@ class ClientTest extends TestCase
     {
         Http::fake(['*' => Http::response([])]);
 
-        Tembo::projects()->deleteEnvironmentVariable('p 1', 'A/B');
+        Tembo::projects()->environmentVariables()->delete('p 1', 'A/B');
 
         Http::assertSent(fn (Request $request) => $request->url() === 'https://api.tembo.io/v1/projects/p%201/environment-variables/A%2FB');
     }
@@ -124,7 +124,7 @@ class ClientTest extends TestCase
         Http::fake(['*' => Http::response(['error' => 'Something specific'], $status)]);
 
         try {
-            Tembo::sessions()->get('s1');
+            Tembo::sessions()->retrieve('s1');
             $this->fail('No exception thrown.');
         } catch (TemboException $e) {
             $this->assertSame($class, $e::class);
@@ -152,7 +152,7 @@ class ClientTest extends TestCase
             ->push(['error' => 'Bad gateway'], 502)
             ->push(['id' => 's1'])]);
 
-        $this->assertSame(['id' => 's1'], Tembo::sessions()->get('s1'));
+        $this->assertSame(['id' => 's1'], Tembo::sessions()->retrieve('s1'));
         Http::assertSentCount(2);
     }
 
@@ -186,7 +186,7 @@ class ClientTest extends TestCase
         Http::fake(['*' => Http::response(['error' => 'Slow down'], 429, ['Retry-After' => '7'])]);
 
         try {
-            Tembo::sessions()->get('s1');
+            Tembo::sessions()->retrieve('s1');
             $this->fail('No exception thrown.');
         } catch (RateLimitException $e) {
             $this->assertSame(7, $e->retryAfter());

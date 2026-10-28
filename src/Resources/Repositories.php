@@ -17,7 +17,7 @@ class Repositories extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $repositoryId): array
+    public function retrieve(string $repositoryId): array
     {
         return $this->tembo->get($this->path('v1/repositories/%s', $repositoryId));
     }

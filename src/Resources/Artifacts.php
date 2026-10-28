@@ -26,7 +26,7 @@ class Artifacts extends Resource
     /**
      * @return array<string, mixed>
      */
-    public function get(string $artifactId): array
+    public function retrieve(string $artifactId): array
     {
         return $this->tembo->get($this->path('v1/artifacts/%s', $artifactId));
     }
