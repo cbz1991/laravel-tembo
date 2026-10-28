@@ -8,7 +8,5 @@ discussions focused on the work. Harassment, insults and personal attacks are
 not tolerated in issues, pull requests or any other project space.
 
 Instances of unacceptable behaviour can be reported privately to the
-maintainer through the repository's
-[Security tab](https://github.com/cbz1991/laravel-tembo/security)
-(**Report a vulnerability**), which keeps the report confidential. All reports
-will be reviewed and handled discreetly.
+maintainer at [florin.cabuz@gmail.com](mailto:florin.cabuz@gmail.com). All
+reports will be reviewed and handled discreetly.

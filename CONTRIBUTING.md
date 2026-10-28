@@ -19,7 +19,7 @@ part in this project you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.m
 ## Staying in sync with the API
 
 Tembo's API changes often. The source of truth is its
-[OpenAPI schema](https://www.tembo.io/openapi.json):
+[OpenAPI schema](https://api.tembo.io/public-api/openapi/public):
 
 ```bash
 bin/update-endpoints   # refresh tests/Fixtures/endpoints.json (needs curl and jq)

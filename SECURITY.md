@@ -24,3 +24,9 @@ Report them privately through GitHub instead:
 You'll get a reply within a few days. Once the issue is confirmed, a fix is
 released as soon as possible and you'll be credited in the changelog unless
 you'd rather stay anonymous.
+
+## Issues in Tembo itself
+
+This policy covers the package only. If the problem is in the Tembo API or
+service (for example an endpoint that exposes another organization's data),
+report it to [Tembo](https://www.tembo.io) directly.
