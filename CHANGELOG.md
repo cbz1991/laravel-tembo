@@ -4,6 +4,11 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.7 - 2026-10-28
+
+- A Laravel Boost guideline and skill (`resources/boost`), the counterpart of
+  the official SDK's `SKILL.md`, so AI assistants use the package correctly.
+
 ## 1.0.6 - 2026-10-28
 
 - `api.md` lists every method with the endpoint it calls, like the official

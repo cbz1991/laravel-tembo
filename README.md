@@ -422,6 +422,14 @@ frames you want.
 | `headers` | none | `[]` |
 | `query` | none | `[]` |
 
+## AI assistants
+
+The package ships a [Laravel Boost](https://github.com/laravel/boost)
+guideline and skill, like the `SKILL.md` of the official SDK. Run
+`php artisan boost:install` (or `boost:update`) and select
+`cabuz/laravel-tembo`, and your AI assistant learns how to call Tembo with this
+package instead of guessing.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
