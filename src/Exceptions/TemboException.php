@@ -35,7 +35,7 @@ class TemboException extends RuntimeException
         $message = sprintf('Tembo API %s %s failed with %d: %s', $method, $path, $status, $error);
 
         $class = match (true) {
-            $status === 400, $status === 422 => InvalidRequestException::class,
+            $status === 400, $status === 413, $status === 422 => InvalidRequestException::class,
             $status === 401 => AuthenticationException::class,
             $status === 403 => PermissionDeniedException::class,
             $status === 404 => NotFoundException::class,

@@ -4,6 +4,14 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.6 - 2026-10-28
+
+- `api.md` lists every method with the endpoint it calls, like the official
+  SDK's API reference. It's generated from the code and checked by the tests.
+- `Tembo::lastResponse()` returns the raw response of the most recent request,
+  like the official SDK's `withResponse()`.
+- 413 Payload Too Large throws `InvalidRequestException`.
+
 ## 1.0.5 - 2026-10-28
 
 - Optional logging, like the official SDK's `TEMBO_LOG`: set `TEMBO_LOG` to

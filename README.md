@@ -210,8 +210,8 @@ $run = Tembo::agents()->run($agent['id'], ['reason' => 'Security advisory CVE-20
 ### Everything else
 
 The structure and method names follow Tembo's official
-[TypeScript SDK](https://github.com/tembo/sdk/blob/main/api.md), so its API
-reference applies here too. Each resource has `list()`, `create()`,
+[TypeScript SDK](https://github.com/tembo/sdk/blob/main/api.md).
+[api.md](api.md) lists every method with the endpoint it calls. Each resource has `list()`, `create()`,
 `retrieve()`, `update()` and `delete()` where the API supports them. Nested
 resources are reached through an accessor and take the parent ID first:
 
@@ -303,7 +303,7 @@ Every error extends `Cabuz\Tembo\Exceptions\TemboException`:
 
 | Exception | Status |
 |---|---|
-| `InvalidRequestException` | 400, 422 |
+| `InvalidRequestException` | 400, 413, 422 |
 | `AuthenticationException` | 401 |
 | `PermissionDeniedException` | 403 |
 | `NotFoundException` | 404 |
@@ -324,6 +324,10 @@ try {
     $e->response;   // the Illuminate\Http\Client\Response
 }
 ```
+
+For a successful call, `Tembo::lastResponse()` returns the raw response of the
+most recent request (status, headers such as rate limits, body), like the
+official SDK's `withResponse()`.
 
 ## Retries
 

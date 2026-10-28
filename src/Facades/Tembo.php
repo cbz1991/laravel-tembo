@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Http;
  * @method static TemboClient withTimeout(int $seconds)
  * @method static TemboClient withRetries(int $retries)
  * @method static TemboClient withConfig(array<string, mixed> $config)
+ * @method static \Illuminate\Http\Client\Response|null lastResponse()
  * @method static mixed config(string $key, mixed $default = null)
  * @method static \Cabuz\Tembo\Resources\Sessions sessions()
  * @method static \Cabuz\Tembo\Resources\Messages messages()

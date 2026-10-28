@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Regenerate api.md from the source code. EndpointCoverageTest fails when it's out of date.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+UPDATE_API_REFERENCE=1 vendor/bin/phpunit --filter test_api_md_lists_every_method

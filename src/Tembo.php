@@ -44,6 +44,11 @@ use Throwable;
 class Tembo
 {
     /**
+     * The raw response of the most recent request made by this client.
+     */
+    protected ?Response $lastResponse = null;
+
+    /**
      * @param  array<string, mixed>  $config
      */
     public function __construct(
@@ -105,8 +110,19 @@ class Tembo
     {
         $clone = clone $this;
         $clone->config = array_replace($this->config, $config);
+        $clone->lastResponse = null;
 
         return $clone;
+    }
+
+    /**
+     * The raw response (status, headers, body) of this client's most recent
+     * request, like the official SDK's withResponse(). Failed requests set it
+     * too, before the exception is thrown.
+     */
+    public function lastResponse(): ?Response
+    {
+        return $this->lastResponse;
     }
 
     public function config(string $key, mixed $default = null): mixed
@@ -377,7 +393,7 @@ class Tembo
         $started = hrtime(true);
 
         try {
-            $response = $request->send($method, $path, $options);
+            $response = $this->lastResponse = $request->send($method, $path, $options);
         } catch (HttpConnectionException $e) {
             $this->log('error', "Tembo API {$method} {$path} could not connect", ['error' => $e->getMessage()]);
 

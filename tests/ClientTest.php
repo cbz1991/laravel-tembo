@@ -318,4 +318,26 @@ class ClientTest extends TestCase
 
         Log::shouldNotHaveReceived('log');
     }
+
+    public function test_last_response_exposes_the_raw_response_and_413_is_an_invalid_request(): void
+    {
+        Http::fake(['*' => Http::sequence()
+            ->push(['id' => 's1'], 200, ['X-Request-Id' => 'req-1'])
+            ->push(['error' => 'Payload too large'], 413),
+        ]);
+
+        $this->assertNull(Tembo::lastResponse());
+
+        Tembo::sessions()->retrieve('s1');
+        $this->assertSame('req-1', Tembo::lastResponse()?->header('X-Request-Id'));
+        $this->assertNull(Tembo::withTimeout(5)->lastResponse());
+
+        try {
+            Tembo::sessions()->create(['description' => str_repeat('x', 10)]);
+            $this->fail('Expected an InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            $this->assertSame(413, $e->status());
+            $this->assertSame(413, Tembo::lastResponse()?->status());
+        }
+    }
 }

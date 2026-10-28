@@ -29,6 +29,8 @@ composer test
 `EndpointCoverageTest` calls every SDK method and fails when a request doesn't
 match a documented endpoint, or when an endpoint has no SDK method. Add the
 missing methods, or list the endpoint in `NOT_WRAPPED` with a reason.
+It also fails when [`api.md`](api.md) is out of date; regenerate it with
+`bin/api-reference` after adding or changing a method.
 
 When you add a method:
 
