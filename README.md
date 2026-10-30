@@ -371,7 +371,22 @@ php artisan tembo:run "Fix the flaky CheckoutTest" --repo=acme/shop --wait
 php artisan tembo:run "Fix the flaky CheckoutTest" --repo=acme/shop --follow
 ```
 
-`tembo:run` also accepts `--agent`, `--project`, `--branch` and `--timeout`.
+`--follow` shows the agent's text as it writes it, one line per tool call
+with its output, and the setup steps:
+
+```
+· setup_finished completed
+→ Bash: php artisan test --filter=CheckoutTest
+  Tests:  1 passed
+The test was flaky because...
+```
+
+It understands the formats of Claude Code, Codex, OpenCode, Pi and fx; add
+`--raw` to print the provider events as they arrive instead. `tembo:run` also
+accepts `--agent`, `--project`, `--branch` and `--timeout`.
+
+To render live output yourself, pass each `delta` frame's data to
+`Cabuz\Tembo\Support\LiveOutput::render()`; it returns the text to print.
 
 ## Testing your app
 

@@ -4,6 +4,7 @@ namespace Cabuz\Tembo\Commands;
 
 use Cabuz\Tembo\Exceptions\SessionTimeoutException;
 use Cabuz\Tembo\Exceptions\TemboException;
+use Cabuz\Tembo\Support\LiveOutput;
 use Cabuz\Tembo\Support\SessionState;
 use Cabuz\Tembo\Tembo;
 use Illuminate\Console\Command;
@@ -19,6 +20,7 @@ class RunCommand extends Command
         {--branch= : Base branch to start from}
         {--wait : Wait until the session finishes}
         {--follow : Stream the agent output until the session finishes (needs phrity/websocket)}
+        {--raw : With --follow, print the raw provider events instead of readable text}
         {--timeout=3600 : Seconds to wait with --wait or --follow}';
 
     protected $description = 'Start a Tembo coding agent session';
@@ -79,10 +81,15 @@ class RunCommand extends Command
     {
         $deadline = time() + (int) $this->option('timeout');
         $session = [];
+        $output = $this->option('raw') ? null : new LiveOutput;
 
         foreach ($tembo->sessions()->events()->live()->subscribe($id) as $frame) {
             if ($frame['type'] === 'delta' && is_array($frame['data'] ?? null)) {
-                $this->line((string) ($frame['data']['message'] ?? ''));
+                if ($output === null) {
+                    $this->line((string) ($frame['data']['message'] ?? ''));
+                } else {
+                    $this->output->write($output->render($frame['data']));
+                }
 
                 continue;
             }

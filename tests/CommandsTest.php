@@ -80,6 +80,29 @@ class CommandsTest extends TestCase
 
     public function test_run_can_follow_the_live_output(): void
     {
+        $this->fakeFollow(['type' => 'delta', 'data' => ['event' => 'response.output_text.delta', 'provider' => 'openai_responses', 'message' => '{"delta":"Reading the tests"}']]);
+
+        $this->artisan('tembo:run', ['task' => 'Fix it', '--follow' => true])
+            ->expectsOutputToContain('Reading the tests')
+            ->doesntExpectOutputToContain('response.output_text.delta')
+            ->expectsOutputToContain('completed')
+            ->assertSuccessful();
+    }
+
+    public function test_run_can_follow_the_raw_events(): void
+    {
+        $this->fakeFollow(['type' => 'delta', 'data' => ['event' => 'response.output_text.delta', 'provider' => 'openai_responses', 'message' => '{"delta":"Reading the tests"}']]);
+
+        $this->artisan('tembo:run', ['task' => 'Fix it', '--follow' => true, '--raw' => true])
+            ->expectsOutputToContain('{"delta":"Reading the tests"}')
+            ->assertSuccessful();
+    }
+
+    /**
+     * @param  array<string, mixed>  $delta
+     */
+    private function fakeFollow(array $delta): void
+    {
         Http::fake([
             '*/v1/sessions' => Http::response($this->fakeSession('queued'), 201),
             '*/v1/live' => Http::response(['ticket' => 't1']),
@@ -88,13 +111,8 @@ class CommandsTest extends TestCase
         $this->app->instance(SocketFactory::class, new FakeSocketFactory([new FakeSocket([
             ['type' => 'ready'],
             ['type' => 'ready', 'id' => 'events'],
-            ['type' => 'event', 'id' => 'events', 'data' => ['type' => 'delta', 'data' => ['event' => 'output', 'message' => 'Reading the tests']]],
+            ['type' => 'event', 'id' => 'events', 'data' => $delta],
             null,
         ])]));
-
-        $this->artisan('tembo:run', ['task' => 'Fix it', '--follow' => true])
-            ->expectsOutputToContain('Reading the tests')
-            ->expectsOutputToContain('completed')
-            ->assertSuccessful();
     }
 }

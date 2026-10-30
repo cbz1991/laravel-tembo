@@ -4,6 +4,13 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.9 - 2026-10-30
+
+- `tembo:run --follow` prints readable output (the agent's text, tool calls
+  with their output, setup steps) instead of raw provider events, for Claude
+  Code, Codex, OpenCode, Pi and fx. `--raw` keeps the old output.
+  `Cabuz\Tembo\Support\LiveOutput` does the rendering for your own code.
+
 ## 1.0.8 - 2026-10-28
 
 - `Tembo::fakeLive()` fakes the live stream in tests: `subscribe()` yields
