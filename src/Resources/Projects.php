@@ -57,6 +57,16 @@ class Projects extends Resource
     }
 
     /**
+     * The default sandbox size and the largest size the plan allows.
+     *
+     * @return array<string, mixed>
+     */
+    public function retrieveDefaults(): array
+    {
+        return $this->tembo->get('v1/projects/defaults');
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */

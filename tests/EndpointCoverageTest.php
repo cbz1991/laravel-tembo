@@ -222,7 +222,7 @@ class EndpointCoverageTest extends TestCase
             }
         }
 
-        $this->assertCount(19, $resources);
+        $this->assertCount(20, $resources);
 
         for ($i = 0; $i < count($resources); $i++) {
             foreach ((new ReflectionClass($resources[$i]))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {

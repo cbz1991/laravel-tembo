@@ -225,23 +225,24 @@ Tembo::users()->profilePicture()->update($userId, $request->file('avatar'));
 
 | Accessor | Nested resources and extra methods |
 |---|---|
-| `sessions()` | `sources()`, `diffs()`, `inputs()`, `queue()`, `commands()`; `fork()`, `stop()`, `listEvents()` |
+| `sessions()` | `sources()`, `diffs()`, `inputs()`, `queue()`, `commands()`; `fork()`, `stop()`, `import()`, `listEvents()` |
 | `messages()` | Session messages |
 | `agents()` | `templates()`, `schedules()`, `triggers()`, `runs()`, `contentRevisions()` |
-| `projects()` | `environmentVariables()`, `snapshots()`, `builds()`, `schedules()`; `duplicate()`, `updateDefaults()` |
+| `projects()` | `environmentVariables()`, `snapshots()`, `builds()`, `schedules()`; `duplicate()`, `retrieveDefaults()`, `updateDefaults()` |
 | `repositories()` | Repositories |
 | `pullRequests()` | Pull requests opened by sessions |
-| `artifacts()` | Session artifacts |
+| `artifacts()` | Session artifacts; `retrieveAssetUrl()` |
 | `integrations()` | `providers()`, `triggers()`; `authorize()`, `test()`, `sync()`, `syncAll()`, `retrieveSyncStatus()`, `retrieveRateLimit()`, `listSentryEnvironments()`, `listSlackChannels()` |
 | `mcpConnections()` | `authorize()`, `test()` |
 | `skills()` | `marketplace()` |
 | `models()`, `runtimes()` | Available agent models and runtimes |
-| `organizations()` | `members()`, `secrets()`, `settings()`, `subscriptions()` |
-| `users()` | `settings()`, `connectedAccounts()`, `subscriptions()`, `profilePicture()`; `me()` |
+| `organizations()` | `members()`, `roles()`, `secrets()`, `settings()`, `subscriptions()` |
+| `users()` | `settings()`, `connectedAccounts()`, `subscriptions()`, `environmentVariables()`, `profilePicture()`; `me()` |
 | `apiKeys()` | API keys |
 | `billing()` | `retrieve()`, `listUsage()` |
 | `insights()` | `retrieve()`, `update()`, `listMembers()`, `listRepositories()` |
 | `pins()` | Pins |
+| `folders()` | Sidebar folders for organizing sessions |
 
 For an endpoint Tembo adds before this package wraps it, use the raw methods:
 

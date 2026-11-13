@@ -3,6 +3,7 @@
 namespace Cabuz\Tembo\Resources;
 
 use Cabuz\Tembo\Resources\Organizations\Members;
+use Cabuz\Tembo\Resources\Organizations\Roles;
 use Cabuz\Tembo\Resources\Organizations\Secrets;
 use Cabuz\Tembo\Resources\Organizations\Settings;
 use Cabuz\Tembo\Resources\Organizations\Subscriptions;
@@ -46,6 +47,11 @@ class Organizations extends Resource
     public function members(): Members
     {
         return new Members($this->tembo);
+    }
+
+    public function roles(): Roles
+    {
+        return new Roles($this->tembo);
     }
 
     public function secrets(): Secrets

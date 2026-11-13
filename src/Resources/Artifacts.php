@@ -32,6 +32,16 @@ class Artifacts extends Resource
     }
 
     /**
+     * A fresh signed download URL for an uploaded session asset.
+     *
+     * @return array<string, mixed>
+     */
+    public function retrieveAssetUrl(string $assetId): array
+    {
+        return $this->tembo->get($this->path('v1/artifacts/assets/%s', $assetId));
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function delete(string $artifactId): array

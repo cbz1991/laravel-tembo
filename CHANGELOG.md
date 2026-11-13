@@ -4,6 +4,15 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.0.10 - 2026-11-13
+
+- New endpoints from Tembo's API: `folders()` (sidebar folders),
+  `organizations()->roles()`, `users()->environmentVariables()` (personal
+  environment variables), `sessions()->import()`,
+  `artifacts()->retrieveAssetUrl()` and `projects()->retrieveDefaults()`.
+- Removed `users()->delete()` and `subscriptions()->reset()` on users and
+  organizations: Tembo dropped these endpoints from its public API.
+
 ## 1.0.9 - 2026-10-30
 
 - `tembo:run --follow` prints readable output (the agent's text, tool calls

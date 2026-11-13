@@ -71,14 +71,26 @@ class SessionsTest extends TestCase
             && $request->url() === 'https://api.tembo.io/v1/sessions/s1/stop?cancelQueued=true');
     }
 
-    public function test_deleting_a_user_sends_the_questionnaire_as_the_body(): void
+    public function test_deleting_a_role_sends_the_replacement_role_as_the_body(): void
     {
         Http::fake(['*' => Http::response([])]);
 
-        Tembo::users()->delete('u1', ['deletionQuestionnaire' => ['reasons' => ['other']]]);
+        Tembo::organizations()->roles()->delete('o1', 'r1', 'r2');
 
         Http::assertSent(fn (Request $request) => $request->method() === 'DELETE'
-            && $request->data() === ['deletionQuestionnaire' => ['reasons' => ['other']]]);
+            && $request->url() === 'https://api.tembo.io/v1/organizations/o1/roles/r1'
+            && $request->data() === ['replacementRoleId' => 'r2']);
+    }
+
+    public function test_creating_a_user_environment_variable_sends_its_key_and_value(): void
+    {
+        Http::fake(['*' => Http::response([])]);
+
+        Tembo::users()->environmentVariables()->create('u1', 'GITHUB_TOKEN', 'secret');
+
+        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+            && $request->url() === 'https://api.tembo.io/v1/users/u1/environment-variables'
+            && $request->data() === ['key' => 'GITHUB_TOKEN', 'value' => 'secret']);
     }
 
     public function test_state_reads_the_current_state(): void

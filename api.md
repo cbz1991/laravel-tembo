@@ -42,6 +42,7 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | `retrieve(string $sessionId): array` | `GET /v1/sessions/{sessionId}` |
 | `update(string $sessionId, array $data): array` | `PATCH /v1/sessions/{sessionId}` |
 | `delete(string $sessionId): array` | `DELETE /v1/sessions/{sessionId}` |
+| `import(array $data): array` | `POST /v1/sessions/import` |
 | `fork(string $sessionId, array $data = []): array` | `POST /v1/sessions/{sessionId}/fork` |
 | `stop(string $sessionId, array $query = []): array` | `POST /v1/sessions/{sessionId}/stop` |
 | `sendMessage(string $sessionId, string $content, array $options = []): array` | `POST /v1/messages` |
@@ -176,6 +177,7 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | `retrieve(string $projectId): array` | `GET /v1/projects/{projectId}` |
 | `update(string $projectId, array $data): array` | `PATCH /v1/projects/{projectId}` |
 | `delete(string $projectId): array` | `DELETE /v1/projects/{projectId}` |
+| `retrieveDefaults(): array` | `GET /v1/projects/defaults` |
 | `updateDefaults(array $data): array` | `PUT /v1/projects/defaults` |
 | `duplicate(string $projectId): array` | `POST /v1/projects/{projectId}/duplicate` |
 
@@ -229,6 +231,7 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | `list(array $query = []): CursorPage` | `GET /v1/artifacts` |
 | `create(array $data): array` | `POST /v1/artifacts` |
 | `retrieve(string $artifactId): array` | `GET /v1/artifacts/{artifactId}` |
+| `retrieveAssetUrl(string $assetId): array` | `GET /v1/artifacts/assets/{assetId}` |
 | `delete(string $artifactId): array` | `DELETE /v1/artifacts/{artifactId}` |
 
 ## `models()`
@@ -312,7 +315,6 @@ return a `CursorPage`, the others the decoded JSON as an array.
 |---|---|
 | `me(): array` | `GET /v1/users/me` |
 | `retrieve(string $userId): array` | `GET /v1/users/{userId}` |
-| `delete(string $userId, array $data = []): array` | `DELETE /v1/users/{userId}` |
 
 ### `users()->settings()`
 
@@ -333,7 +335,14 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | Method | Endpoint |
 |---|---|
 | `retrieve(string $userId): array` | `GET /v1/users/{userId}/subscriptions` |
-| `reset(string $userId, array $data): array` | `POST /v1/users/{userId}/subscriptions/reset` |
+
+### `users()->environmentVariables()`
+
+| Method | Endpoint |
+|---|---|
+| `list(string $userId): CursorPage` | `GET /v1/users/{userId}/environment-variables` |
+| `create(string $userId, string $key, string $value): array` | `POST /v1/users/{userId}/environment-variables` |
+| `delete(string $userId, string $environmentVariableId): array` | `DELETE /v1/users/{userId}/environment-variables/{environmentVariableId}` |
 
 ### `users()->profilePicture()`
 
@@ -372,6 +381,16 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | `update(string $organizationId, string $memberId, array $data): array` | `PATCH /v1/organizations/{organizationId}/members/{memberId}` |
 | `delete(string $organizationId, string $memberId): array` | `DELETE /v1/organizations/{organizationId}/members/{memberId}` |
 
+### `organizations()->roles()`
+
+| Method | Endpoint |
+|---|---|
+| `list(string $organizationId): array` | `GET /v1/organizations/{organizationId}/roles` |
+| `create(string $organizationId, array $data): array` | `POST /v1/organizations/{organizationId}/roles` |
+| `retrieve(string $organizationId, string $roleId): array` | `GET /v1/organizations/{organizationId}/roles/{roleId}` |
+| `update(string $organizationId, string $roleId, array $data): array` | `PATCH /v1/organizations/{organizationId}/roles/{roleId}` |
+| `delete(string $organizationId, string $roleId, string $replacementRoleId): array` | `DELETE /v1/organizations/{organizationId}/roles/{roleId}` |
+
 ### `organizations()->secrets()`
 
 | Method | Endpoint |
@@ -395,7 +414,6 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | Method | Endpoint |
 |---|---|
 | `retrieve(string $organizationId): array` | `GET /v1/organizations/{organizationId}/subscriptions` |
-| `reset(string $organizationId, array $data): array` | `POST /v1/organizations/{organizationId}/subscriptions/reset` |
 
 ## `billing()`
 
@@ -421,6 +439,15 @@ return a `CursorPage`, the others the decoded JSON as an array.
 | `create(array $data): array` | `POST /v1/pins` |
 | `update(string $resourceType, string $resourceId, array $data): array` | `PATCH /v1/pins/{resourceType}/{resourceId}` |
 | `delete(string $resourceType, string $resourceId): array` | `DELETE /v1/pins/{resourceType}/{resourceId}` |
+
+## `folders()`
+
+| Method | Endpoint |
+|---|---|
+| `list(): CursorPage` | `GET /v1/folders` |
+| `create(array $data): array` | `POST /v1/folders` |
+| `update(string $folderId, array $data): array` | `PATCH /v1/folders/{folderId}` |
+| `delete(string $folderId): array` | `DELETE /v1/folders/{folderId}` |
 
 ## `live()`
 

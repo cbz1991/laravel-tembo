@@ -9,6 +9,7 @@ use Cabuz\Tembo\Resources\Agents;
 use Cabuz\Tembo\Resources\ApiKeys;
 use Cabuz\Tembo\Resources\Artifacts;
 use Cabuz\Tembo\Resources\Billing;
+use Cabuz\Tembo\Resources\Folders;
 use Cabuz\Tembo\Resources\Insights;
 use Cabuz\Tembo\Resources\Integrations;
 use Cabuz\Tembo\Resources\Live;
@@ -222,6 +223,11 @@ class Tembo
     public function pins(): Pins
     {
         return new Pins($this);
+    }
+
+    public function folders(): Folders
+    {
+        return new Folders($this);
     }
 
     public function live(): Live

@@ -3,6 +3,7 @@
 namespace Cabuz\Tembo\Resources;
 
 use Cabuz\Tembo\Resources\Users\ConnectedAccounts;
+use Cabuz\Tembo\Resources\Users\EnvironmentVariables;
 use Cabuz\Tembo\Resources\Users\ProfilePicture;
 use Cabuz\Tembo\Resources\Users\Settings;
 use Cabuz\Tembo\Resources\Users\Subscriptions;
@@ -25,15 +26,6 @@ class Users extends Resource
         return $this->tembo->get($this->path('v1/users/%s', $userId));
     }
 
-    /**
-     * @param  array<string, mixed>  $data  deletionQuestionnaire
-     * @return array<string, mixed>
-     */
-    public function delete(string $userId, array $data = []): array
-    {
-        return $this->tembo->delete($this->path('v1/users/%s', $userId), [], $data);
-    }
-
     public function settings(): Settings
     {
         return new Settings($this->tembo);
@@ -47,6 +39,11 @@ class Users extends Resource
     public function subscriptions(): Subscriptions
     {
         return new Subscriptions($this->tembo);
+    }
+
+    public function environmentVariables(): EnvironmentVariables
+    {
+        return new EnvironmentVariables($this->tembo);
     }
 
     public function profilePicture(): ProfilePicture

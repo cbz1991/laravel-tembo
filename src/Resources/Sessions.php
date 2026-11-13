@@ -79,6 +79,18 @@ class Sessions extends Resource
     }
 
     /**
+     * Import a chat from another coding agent app (such as Conductor) as a
+     * private session. Importing the same chat again returns the existing session.
+     *
+     * @param  array<string, mixed>  $data  source, externalId, title and messages are required.
+     * @return array<string, mixed>
+     */
+    public function import(array $data): array
+    {
+        return $this->tembo->post('v1/sessions/import', $data);
+    }
+
+    /**
      * @param  array<string, mixed>  $data  prompt, title, queueRightAway
      * @return array<string, mixed>
      */
