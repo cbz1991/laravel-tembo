@@ -99,4 +99,29 @@ return [
         'queue' => env('TEMBO_QUEUE'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Fixing Sentry issues
+    |--------------------------------------------------------------------------
+    |
+    | php artisan tembo:fix-sentry starts one Tembo session per unresolved
+    | Sentry issue, each on its own branch (branch_prefix + the issue's short
+    | ID), with the error and its stack trace as the task. An issue is only
+    | sent once.
+    |
+    | token: a Sentry auth token with the event:read and project:read scopes.
+    | url: https://sentry.io, https://de.sentry.io or your self-hosted Sentry.
+    | repository: the Tembo repository ID or owner/name the fixes go to.
+    |
+    */
+
+    'sentry' => [
+        'token' => env('SENTRY_AUTH_TOKEN'),
+        'url' => env('SENTRY_URL', 'https://sentry.io'),
+        'organization' => env('SENTRY_ORG'),
+        'project' => env('SENTRY_PROJECT'),
+        'repository' => env('TEMBO_SENTRY_REPOSITORY'),
+        'branch_prefix' => 'fix/sentry-',
+    ],
+
 ];

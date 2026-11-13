@@ -4,6 +4,14 @@ All notable changes to `laravel-tembo` will be documented in this file.
 
 ## Unreleased
 
+## 1.1.0 - 2026-11-13
+
+- `php artisan tembo:fix-sentry` starts one Tembo session per unresolved
+  Sentry issue, each on its own branch, with the error and its stack trace as
+  the task. Every issue gets the same session ID on each run, so it's only
+  sent once and the command is safe to schedule. Configure it under
+  `tembo.sentry`.
+
 ## 1.0.10 - 2026-11-13
 
 - New endpoints from Tembo's API: `folders()` (sidebar folders),

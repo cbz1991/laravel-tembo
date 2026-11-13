@@ -389,6 +389,42 @@ accepts `--agent`, `--project`, `--branch` and `--timeout`.
 To render live output yourself, pass each `delta` frame's data to
 `Cabuz\Tembo\Support\LiveOutput::render()`; it returns the text to print.
 
+### Fix Sentry issues
+
+`tembo:fix-sentry` reads your project's unresolved issues from Sentry and
+starts one Tembo session per issue, each on its own branch
+(`fix/sentry-api-1a` for issue `API-1A`). The task holds the error, where it
+happened, its stack trace (your app's frames first) and a link to Sentry, and
+asks the agent for the smallest fix with a test that fails without it.
+
+```dotenv
+SENTRY_AUTH_TOKEN=sntrys_...   # scopes: event:read, project:read
+SENTRY_ORG=acme
+SENTRY_PROJECT=api
+TEMBO_SENTRY_REPOSITORY=acme/api
+```
+
+```bash
+# See which issues would be sent, and their branches
+php artisan tembo:fix-sentry --dry-run
+
+# Send the 5 most recent unresolved issues (the defaults)
+php artisan tembo:fix-sentry
+
+# Or choose them with any Sentry search
+php artisan tembo:fix-sentry --query="is:unresolved level:error times_seen:>10" --limit=3
+```
+
+Each issue gets the same session ID on every run, so it's only sent once,
+whichever machine runs the command. That makes it safe to schedule:
+
+```php
+Schedule::command('tembo:fix-sentry')->dailyAt('07:00');
+```
+
+It also accepts `--repo`, `--agent`, `--project` and `--branch` (the base
+branch). For EU or self-hosted Sentry, set `SENTRY_URL`.
+
 ## Testing your app
 
 `Tembo::fake()` stubs the API with paths relative to it. Requests that don't
@@ -449,6 +485,12 @@ container.
 | `watch.queue` | `TEMBO_QUEUE` | default queue |
 | `log` | `TEMBO_LOG` | none (off) |
 | `log_channel` | `TEMBO_LOG_CHANNEL` | default channel |
+| `sentry.token` | `SENTRY_AUTH_TOKEN` | none |
+| `sentry.url` | `SENTRY_URL` | `https://sentry.io` |
+| `sentry.organization` | `SENTRY_ORG` | none |
+| `sentry.project` | `SENTRY_PROJECT` | none |
+| `sentry.repository` | `TEMBO_SENTRY_REPOSITORY` | none |
+| `sentry.branch_prefix` | none | `fix/sentry-` |
 | `headers` | none | `[]` |
 | `query` | none | `[]` |
 

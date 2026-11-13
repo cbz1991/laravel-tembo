@@ -75,6 +75,10 @@ foreach (Tembo::sessions()->events()->live()->subscribe($sessionId) as $frame) {
 
 Break out of the loop to stop. `idle` arrives after 15 seconds without output, so the loop can check `Tembo::sessions()->state($id)`.
 
+## Fix Sentry issues
+
+`php artisan tembo:fix-sentry` starts one session per unresolved Sentry issue, each on its own branch (`fix/sentry-<short id>`). It needs `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` and `TEMBO_SENTRY_REPOSITORY`; `--dry-run` lists what it would send. An issue is only sent once, so schedule it rather than writing your own loop.
+
 ## Errors
 
 Every exception extends `Cabuz\Tembo\Exceptions\TemboException` (`status()`, `error()`, `$response`): `InvalidRequestException` (400, 413, 422), `AuthenticationException` (401), `PermissionDeniedException` (403), `NotFoundException` (404), `ConflictException` (409), `RateLimitException` (429), `ServerException` (5xx), `ConnectionException`, `MissingApiKeyException`. Rate limits are retried automatically; writes are never retried after a 5xx, so a failed `start()` should not be blindly repeated.

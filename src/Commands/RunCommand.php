@@ -2,16 +2,18 @@
 
 namespace Cabuz\Tembo\Commands;
 
+use Cabuz\Tembo\Commands\Concerns\ResolvesRepositories;
 use Cabuz\Tembo\Exceptions\SessionTimeoutException;
 use Cabuz\Tembo\Exceptions\TemboException;
 use Cabuz\Tembo\Support\LiveOutput;
 use Cabuz\Tembo\Support\SessionState;
 use Cabuz\Tembo\Tembo;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 class RunCommand extends Command
 {
+    use ResolvesRepositories;
+
     protected $signature = 'tembo:run
         {task : What the coding agent should do}
         {--repo=* : Repository ID or owner/name (repeatable)}
@@ -28,7 +30,7 @@ class RunCommand extends Command
     public function handle(Tembo $tembo): int
     {
         try {
-            $repositoryIds = $this->repositoryIds($tembo);
+            $repositoryIds = $this->repositoryIds($tembo, (array) $this->option('repo'));
 
             if ($repositoryIds === null) {
                 return self::FAILURE;
@@ -108,35 +110,5 @@ class RunCommand extends Command
         }
 
         return $session;
-    }
-
-    /**
-     * @return list<string>|null null when a repository name couldn't be resolved.
-     */
-    protected function repositoryIds(Tembo $tembo): ?array
-    {
-        $ids = [];
-
-        foreach ((array) $this->option('repo') as $repo) {
-            $repo = (string) $repo;
-
-            if (Str::isUuid($repo)) {
-                $ids[] = $repo;
-
-                continue;
-            }
-
-            $repository = $tembo->repositories()->findByName($repo);
-
-            if ($repository === null || ! is_string($repository['id'] ?? null)) {
-                $this->components->error("Repository [{$repo}] was not found in Tembo.");
-
-                return null;
-            }
-
-            $ids[] = $repository['id'];
-        }
-
-        return $ids;
     }
 }

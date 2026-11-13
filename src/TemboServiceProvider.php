@@ -3,7 +3,9 @@
 namespace Cabuz\Tembo;
 
 use Cabuz\Tembo\Commands\CheckCommand;
+use Cabuz\Tembo\Commands\FixSentryCommand;
 use Cabuz\Tembo\Commands\RunCommand;
+use Cabuz\Tembo\Support\Sentry;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +21,11 @@ class TemboServiceProvider extends ServiceProvider
         ));
 
         $this->app->alias(Tembo::class, 'tembo');
+
+        $this->app->bind(Sentry::class, fn ($app) => new Sentry(
+            $app->make(HttpFactory::class),
+            (array) $app['config']->get('tembo.sentry', []),
+        ));
     }
 
     public function boot(): void
@@ -30,6 +37,7 @@ class TemboServiceProvider extends ServiceProvider
 
             $this->commands([
                 CheckCommand::class,
+                FixSentryCommand::class,
                 RunCommand::class,
             ]);
         }
